@@ -1,0 +1,38 @@
+html,
+body {
+    height: 100%;
+}
+
+:root {
+    --font-serif: 'Times New Roman', Times, serif;
+    --font-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    --color-white-softer: hsla(0deg 0% 85% / 1.0);
+    --color-white-soft: hsla(0deg 0% 90% / 1.0);
+
+    --color-black-soft: hsl(0deg 0% 20% / 1.0);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    font-size: 22px;
+    line-height: 1.5;
+    font-family: var(--font-sans-serif);
+    background: var(--color-white-soft);
+    color: var(--color-black-soft);
+}
+
+header, footer {
+    padding: 2em;
+    background-color: var(--color-white-softer);
+}
+
+main {
+    flex: 1;
+    padding: 2em
+}

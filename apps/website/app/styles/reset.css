@@ -1,0 +1,16 @@
+* {
+    box-sizing: border-box;
+}
+
+img {
+    display: inline-block;
+}
+
+input,
+button {
+    font: inherit;
+}
+
+h1,h2,h3,h4,h5 {
+    margin: 0;
+}
