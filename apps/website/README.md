@@ -1,53 +1,58 @@
-# Welcome to Remix!
+# Schultz Tables
 
-- [Remix Docs](https://remix.run/docs)
-
-## Development
-
-From your terminal:
-
-```sh
+```
 npm run dev
 ```
 
-This starts your app in development mode, rebuilding assets on file changes.
+## Docker
 
-## Deployment
+```
+docker build -t shultz-tables-client .
 
-First, build your app for production:
-
-```sh
-npm run build
+docker run -it --rm `
+    -p 3000:8080 `
+    batch-processor-client
 ```
 
-Then run the app in production mode:
+## 1 Run SQL Database Locally
 
-```sh
-npm start
+[Prisma Docker Docs](https://www.prisma.io/docs/concepts/database-connectors/sql-server/sql-server-docker)
+
+```
+docker run -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>' -p 1433:1433 --name sql1 -d mcr.microsoft.com/mssql/server:2019-latest
 ```
 
-Now you'll need to pick a host to deploy it to.
+```
+docker exec -it sql1 "bash"
+```
 
-### DIY
+```
+/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "<YourStrong@Passw0rd>"
+```
 
-If you're familiar with deploying node applications, the built-in Remix app server is production-ready.
+```
+CREATE DATABASE batchprocessor
+GO
+CREATE DATABASE batchprocessorshadow
+GO
+```
 
-Make sure to deploy the output of `remix build`
+## 2 Initialize Prisma for Database
 
-- `build/`
-- `public/build/`
+```
+npx prisma db push
+```
 
-### Using a Template
+## 2 Use Prisma to execute command against DB
 
-When you ran `npx create-remix@latest` there were a few choices for hosting. You can run that again to create a new project, then copy over your `app/` folder to the new project that's pre-configured for your target server.
+<https://remix.run/docs/en/v1/tutorials/jokes#set-up-prisma>
 
-```sh
-cd ..
-# create a new project, and pick a pre-configured host
-npx create-remix@latest
-cd my-new-remix-app
-# remove the new project's app (not the old one!)
-rm -rf app
-# copy your app over
-cp -R ../my-old-remix-app/app app
+```powershell
+npx prisma init --datasource-provider sqlserver
+```
+
+<https://www.prisma.io/docs/reference/api-reference/command-reference#db-execute>
+
+```
+prisma db execute --file ./prisma/scripts/create-dbs.sql
 ```
