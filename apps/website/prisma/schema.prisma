@@ -19,3 +19,10 @@ model Item {
   updatedAt DateTime @updatedAt
   value     Int
 }
+
+model Result {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  value     Int
+}
