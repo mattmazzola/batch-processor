@@ -27,6 +27,7 @@ button[type="submit"] {
 .row {
     display: flex;
     gap: 1em;
+    align-items: baseline;
 }
 
 .processingForm {

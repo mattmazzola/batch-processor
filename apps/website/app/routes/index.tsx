@@ -2,7 +2,7 @@ import { DataFunctionArgs, LinksFunction } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
 import indexStyles from "~/styles/index.css"
 import { db } from "~/services/db.server"
-import React, { createRef, useRef } from "react"
+import React, { createRef } from "react"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: indexStyles },
@@ -10,9 +10,11 @@ export const links: LinksFunction = () => [
 
 export const loader = async ({ request }: DataFunctionArgs) => {
   const items = await db.item.findMany()
+  const results = await db.result.findMany()
 
   return {
-    items
+    items,
+    results,
   }
 }
 
@@ -51,7 +53,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
 }
 
 export default function Index() {
-  const { items } = useLoaderData<typeof loader>()
+  const { items, results } = useLoaderData<typeof loader>()
   const valueInputRef = createRef<HTMLInputElement>()
   const submitButtonRef = createRef<HTMLButtonElement>()
   const setRandom = () => {
@@ -84,6 +86,23 @@ export default function Index() {
         <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
         <button type="submit">Submit</button>
       </Form>
+      <h1>Results ({results.length}):</h1>
+      <div className="items">
+        <div className="header">ID</div>
+        <div className="header">Value</div>
+        <div className="header">Created At</div>
+        <div className="header">Updated At</div>
+        {results.length === 0
+          ? <div className="empty">No Items</div>
+          : results.map(result => {
+            return <React.Fragment key={result.id}>
+              <div>{result.id}</div>
+              <div><b>{result.value}</b></div>
+              <div>{result.createdAt}</div>
+              <div>{result.updatedAt}</div>
+            </React.Fragment>
+          })}
+      </div>
       <h1>Items ({items.length}):</h1>
       <div className="items">
         <div className="header">ID</div>
