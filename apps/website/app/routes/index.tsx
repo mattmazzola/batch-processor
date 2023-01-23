@@ -53,23 +53,29 @@ export const action = async ({ request }: DataFunctionArgs) => {
 export default function Index() {
   const { items } = useLoaderData<typeof loader>()
   const valueInputRef = createRef<HTMLInputElement>()
+  const submitButtonRef = createRef<HTMLButtonElement>()
   const setRandom = () => {
     if (valueInputRef.current) {
       const randomValue = Math.floor(Math.random() * 1000)
       valueInputRef.current.value = randomValue.toString()
+
+      if (submitButtonRef.current) {
+        submitButtonRef.current.click()
+      }
     }
   }
+
   return (
     <>
       <h1>Enter a value:</h1>
       <Form method="post" className="addValueForm">
         <input type="hidden" name="formName" value={FormSubmissionNames.AddValue} />
-        <div>
+        <div className="row">
           <label htmlFor="value">Value: </label>
           <input ref={valueInputRef} type="number" id="value" name="value" step={1} required defaultValue={0} />
         </div>
-        <div>
-          <button type="submit">Submit</button>
+        <div className="row">
+          <button ref={submitButtonRef} type="submit">Submit</button>
           <button type="button" onClick={setRandom}>Set to vandom value</button>
         </div>
       </Form>
