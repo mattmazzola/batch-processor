@@ -39,20 +39,15 @@ GO
 
 ## 2 Initialize Prisma for Database
 
+<https://remix.run/docs/en/v1/tutorials/jokes#set-up-prisma>
 ```
-npx prisma db push
+npx prisma init --datasource-provider sqlserver
 ```
 
 ## 2 Use Prisma to execute command against DB
 
-<https://remix.run/docs/en/v1/tutorials/jokes#set-up-prisma>
-
-```powershell
-npx prisma init --datasource-provider sqlserver
-```
-
 <https://www.prisma.io/docs/reference/api-reference/command-reference#db-execute>
 
 ```
-prisma db execute --file ./prisma/scripts/create-dbs.sql
+npx prisma db push
 ```
