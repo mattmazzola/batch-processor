@@ -10,11 +10,16 @@ docker build -t processor-node .
 ```
 
 ```powershell
+Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
+
+$envFilePath = $(Resolve-Path ".env").Path
+$databaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
+$shadowDatabaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
+
 docker run -it --rm `
-    processor-node `
-    -e DATABASE_URL=a `
-    -e SHADOW_DATABASE_URL=a `
-    batch-processor-client
+    -e DATABASE_URL=$databaseUrl `
+    -e SHADOW_DATABASE_URL=$shadowDatabaseUrl `
+    processor-node
 ```
 
 ## Scaling
