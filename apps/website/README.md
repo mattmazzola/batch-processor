@@ -7,7 +7,7 @@ npm run dev
 ## Docker
 
 ```
-docker build -t shultz-tables-client .
+docker build -t batchprocessor-client .
 ```
 
 ```
@@ -15,7 +15,7 @@ docker run -it --rm `
     -p 3000:8080 `
     -e DATABASE_URL=a `
     -e SHADOW_DATABASE_URL=a `
-    shultz-tables-client
+    batchprocessor-client
 ```
 
 ## 1 Run SQL Database Locally
