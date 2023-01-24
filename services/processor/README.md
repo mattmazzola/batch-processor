@@ -25,3 +25,8 @@ docker run -it --rm `
 ## Scaling
 
 - <https://learn.microsoft.com/en-us/azure/container-apps/scale-app?pivots=azure-cli#example-2>
+
+## Links
+
+- <https://www.youtube.com/watch?v=z_QnOKVpbkA>
+- <https://www.youtube.com/watch?v=RRJn63wzrfM>

@@ -13,8 +13,15 @@ param databaseAccountUrl string
 @secure()
 param databaseKey string
 
+param queueName string
+param queueLength int
+@secure()
+param queueSecret string
+
 var registryPassworldSecretName = 'container-registry-password'
-var databaseKeySecretName = 'db-key'
+var databaseUrlSecretName = 'db-url'
+var shadowDatabaseUrlSecretName = 'shadow-db-url'
+var queueSecretName = 'queue-secret'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -23,10 +30,6 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
     managedEnvironmentId: managedEnvironmentResourceId
     configuration: {
       activeRevisionsMode: 'Single'
-      ingress: {
-        external: true
-        targetPort: 80
-      }
       registries: [
         {
           server: registryUrl
@@ -40,7 +43,11 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           value: registryPassword
         }
         {
-          name: databaseKeySecretName
+          name: queueSecretName
+          value: queueSecret
+        }
+        {
+          name: databaseUrlSecretName
           value: databaseKey
         }
       ]
@@ -60,45 +67,12 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               value: 'development'
             }
             {
-              name: 'HOST'
-              value: '0.0.0.0'
+              name: 'DATABASE_URL'
+              secretRef: databaseUrlSecretName
             }
             {
-              name: 'PORT'
-              value: '80'
-            }
-            {
-              name: 'COSMOSDB_ACCOUNT'
-              value: databaseAccountUrl
-            }
-            {
-              name: 'COSMOSDB_KEY'
-              secretRef: databaseKeySecretName
-            }
-            {
-              name: 'COSMOSDB_DATABASE_ID'
-              value: 'valorantwomen'
-            }
-            {
-              name: 'COSMOSDB_CONTAINER_ID'
-              value: 'ratings'
-            }
-            {
-              name: 'DAPR_HOST'
-              value: 'localhost'
-            }
-            {
-              name: 'DAPR_HTTP_PORT'
-              value: '3500'
-            }
-          ]
-          probes: [
-            {
-              type: 'Startup'
-              httpGet: {
-                path: '/info/routes'
-                port: 80
-              }
+              name: 'SHADOW_DATABASE_URL'
+              secretRef: databaseUrlSecretName
             }
           ]
         }
@@ -106,6 +80,20 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
       scale: {
         minReplicas: 0
         maxReplicas: 1
+        rules: [
+          {
+            azureQueue: {
+              queueName: queueName
+              queueLength: queueLength
+              auth: [
+                {
+                  triggerParameter: 'connection-string'
+                  secretRef: queueSecretName
+                }
+              ]
+            }
+          }
+        ]
       }
     }
   }
