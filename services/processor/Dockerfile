@@ -19,4 +19,4 @@ RUN npm run build
 ENV PORT="8080"
 ENV NODE_ENV="production"
 
-ENTRYPOINT [ "npm", "start" ]
+ENTRYPOINT [ "./start.sh" ]
