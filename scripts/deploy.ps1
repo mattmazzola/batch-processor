@@ -5,17 +5,18 @@ $resourceGroupLocation = "westus3"
 
 Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
 
+$sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgString
+
 Write-Step "Create Resource Group: $resourceGroupName"
 az group create -l $resourceGroupLocation -g $resourceGroupName --query name -o tsv
 
-$envFilePath = $(Resolve-Path "$PSScriptRoot/../services/processor/.env").Path
+$envFilePath = $(Resolve-Path "./services/processor/.env").Path
 Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
 $shadowDatabaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
-$storageConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'STORAGE_CONNECTION_STRING'
+$storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $sharedResourceNames.storageAccount --query "connectionString" -o tsv)
 
 Write-Step "Fetch params from Azure"
-$sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgString
 
 $containerAppsEnvResourceId = $(az containerapp env show -g $sharedResourceGroupName -n $sharedResourceNames.containerAppsEnv --query "id" -o tsv)
 $acrJson = $(az acr credential show -n $sharedResourceNames.containerRegistry --query "{ username:username, password:passwords[0].value }" | ConvertFrom-Json)
@@ -47,29 +48,48 @@ $data = [ordered]@{
 
 Write-Hash "Data" $data
 
-# Write-Step "Build and Push $serviceImageName Image"
-# docker build -t $serviceImageName ./service
-# docker push $serviceImageName
-# # TODO: Investigate why using 'az acr build' does not work
-# # az acr build -r $registryUrl -t $serviceImageName ./service
+Write-Step "Build and Push $nodeProcessorImageName Image"
+docker build -t $nodeProcessorImageName ./services/processor
+docker push $nodeProcessorImageName
+# TODO: Investigate why using 'az acr build' does not work
+# az acr build -r $registryUrl -t $nodeProcessorImageName ./services/processor
 
-# Write-Step "Deploy $serviceImageName Container App"
-# $serviceBicepContainerDeploymentFilePath = "$PSScriptRoot/../../bicep/modules/serviceContainerApp.bicep"
-# $serviceFqdn = $(az deployment group create `
+Write-Step "Deploy $nodeProcessorImageName Container App"
+$nodeProcessorBicepContainerDeploymentFilePath = "./bicep/modules/nodeProcessorContainerApp.bicep"
+az deployment group create `
+    -g $resourceGroupName `
+    -f $nodeProcessorBicepContainerDeploymentFilePath `
+    -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
+    registryUrl=$registryUrl `
+    registryUsername=$registryUsername `
+    registryPassword=$registryPassword `
+    imageName=$nodeProcessorImageName `
+    containerName=$nodeProcessorContainerName `
+    queueName=$sharedResourceNames.storageQueue `
+    storageAccountName=$sharedResourceNames.storageAccount `
+    storageConnectionString=$storageConnectionString `
+    databaseConnectionString=$databaseConnectionString `
+    shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
+    --what-if
+
+# $nodeProcessorFqdn = $(az deployment group create `
 #     -g $resourceGroupName `
-#     -f $serviceBicepContainerDeploymentFilePath `
+#     -f $nodeProcessorBicepContainerDeploymentFilePath `
 #     -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
 #     registryUrl=$registryUrl `
 #     registryUsername=$registryUsername `
 #     registryPassword=$registryPassword `
-#     imageName=$serviceImageName `
-#     containerName=$serviceContainerName `
-#     databaseAccountUrl=$dbAccountUrl `
-#     databaseKey=$dbKey `
+#     imageName=$nodeProcessorImageName `
+#     containerName=$nodeProcessorContainerName `
+#     queueName=$sharedResourceNames.storageQueue `
+#     storageAccountName=$sharedResourceNames.storageAccount `
+#     storageConnectionString=$storageConnectionString `
+#     databaseConnectionString=$databaseConnectionString `
+#     shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
 #     --query "properties.outputs.fqdn.value" `
 #     -o tsv)
 
-# $apiUrl = "https://$serviceFqdn"
+# $apiUrl = "https://$nodeProcessorFqdn"
 # Write-Output $apiUrl
 
 # Write-Step "Build and Push $clientImageName Image"

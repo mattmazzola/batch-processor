@@ -1,4 +1,4 @@
-param name string = '${resourceGroup().name}-containerapp-service'
+param name string = '${resourceGroup().name}-node'
 param location string = resourceGroup().location
 
 param managedEnvironmentResourceId string
@@ -14,7 +14,7 @@ param queueLength int = 1
 param activationQueueLength int = 0
 param storageAccountName string
 @secure()
-param queueConnectionString string
+param storageConnectionString string
 
 @secure()
 param databaseConnectionString string
@@ -24,7 +24,7 @@ param shadowDatabaseConnectionString string
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var shadowDatabaseUrlSecretName = 'shadow-db-url'
-var queueConnectionStringSecretName = 'queue-connection-string'
+var storageConnectionStringSecretName = 'queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -54,8 +54,8 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           value: shadowDatabaseConnectionString
         }
         {
-          name: queueConnectionStringSecretName
-          value: queueConnectionString
+          name: storageConnectionStringSecretName
+          value: storageConnectionString
         }
       ]
     }
@@ -83,7 +83,7 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
             }
             {
               name: 'STORAGE_CONNECTION_STRING'
-              secretRef: queueConnectionStringSecretName
+              secretRef: storageConnectionStringSecretName
             }
           ]
         }
@@ -93,7 +93,7 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
         maxReplicas: 5
         rules: [
           {
-            name: 'Storage Queue per Message'
+            name: 'storage-queue-message'
             custom: {
               type: 'azure-queue'
               metadata: {
