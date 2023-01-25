@@ -9,19 +9,22 @@ param registryUsername string
 @secure()
 param registryPassword string
 
-param databaseAccountUrl string
-@secure()
-param databaseKey string
-
 param queueName string
-param queueLength int
+param queueLength int = 1
+param activationQueueLength int = 0
+param storageAccountName string
 @secure()
-param queueSecret string
+param queueConnectionString string
+
+@secure()
+param databaseConnectionString string
+@secure()
+param shadowDatabaseConnectionString string
 
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var shadowDatabaseUrlSecretName = 'shadow-db-url'
-var queueSecretName = 'queue-secret'
+var queueConnectionStringSecretName = 'queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -43,12 +46,16 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           value: registryPassword
         }
         {
-          name: queueSecretName
-          value: queueSecret
+          name: databaseUrlSecretName
+          value: databaseConnectionString
         }
         {
-          name: databaseUrlSecretName
-          value: databaseKey
+          name: shadowDatabaseUrlSecretName
+          value: shadowDatabaseConnectionString
+        }
+        {
+          name: queueConnectionStringSecretName
+          value: queueConnectionString
         }
       ]
     }
@@ -74,23 +81,29 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               name: 'SHADOW_DATABASE_URL'
               secretRef: databaseUrlSecretName
             }
+            {
+              name: 'STORAGE_CONNECTION_STRING'
+              secretRef: queueConnectionStringSecretName
+            }
           ]
         }
       ]
       scale: {
         minReplicas: 0
-        maxReplicas: 1
+        maxReplicas: 5
         rules: [
           {
-            azureQueue: {
-              queueName: queueName
-              queueLength: queueLength
-              auth: [
-                {
-                  triggerParameter: 'connection-string'
-                  secretRef: queueSecretName
-                }
-              ]
+            name: 'Storage Queue per Message'
+            custom: {
+              type: 'azure-queue'
+              metadata: {
+                queueName: queueName
+                queueLength: string(queueLength)
+                activationQueueLength: string(activationQueueLength)
+                connectionFromEnv: 'STORAGE_CONNECTION_STRING'
+                accountName: storageAccountName
+                cloud: 'AzurePublicCloud'
+              }
             }
           }
         ]
