@@ -11,6 +11,9 @@ docker build -t batchprocessor-client .
 ```
 
 ```powershell
+$sharedResourceGroupName = "shared"
+$sharedRgString = 'klgoyi'
+
 Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
 
 $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgString

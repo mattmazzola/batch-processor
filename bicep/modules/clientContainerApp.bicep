@@ -1,35 +1,22 @@
 param name string = '${resourceGroup().name}-client'
 param location string = resourceGroup().location
-param managedEnvironmentResourceId string
 
+param managedEnvironmentResourceId string
 param imageName string
 param containerName string
-param apiUrl string
-
-param auth0ReturnToUrl string
-param auth0CallbackUrl string
-param auth0ClientId string
-@secure()
-param auth0ClientSecret string
-param auth0Domain string
-param auth0LogoutUrl string
-
-param auth0managementClientId string
-@secure()
-param auth0managementClientSecret string
-
-@secure()
-param cookieSecret string
-
 param registryUrl string
 param registryUsername string
 @secure()
 param registryPassword string
 
-var registryPasswordName = 'container-registry-password'
-var auth0clientSecretName = 'auth0-client-secret'
-var auth0managementClientSecretName = 'auth0-management-client-secret'
-var cookieSecretName = 'cookie-secret'
+@secure()
+param databaseConnectionString string
+@secure()
+param shadowDatabaseConnectionString string
+
+var registryPassworldSecretName = 'container-registry-password'
+var databaseUrlSecretName = 'db-url'
+var shadowDatabaseUrlSecretName = 'shadow-db-url'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -46,25 +33,21 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
         {
           server: registryUrl
           username: registryUsername
-          passwordSecretRef: registryPasswordName
+          passwordSecretRef: registryPassworldSecretName
         }
       ]
       secrets: [
         {
-          name: registryPasswordName
+          name: registryPassworldSecretName
           value: registryPassword
         }
         {
-          name: auth0clientSecretName
-          value: auth0ClientSecret
+          name: databaseUrlSecretName
+          value: databaseConnectionString
         }
         {
-          name: auth0managementClientSecretName
-          value: auth0managementClientSecret
-        }
-        {
-          name: cookieSecretName
-          value: cookieSecret
+          name: shadowDatabaseUrlSecretName
+          value: shadowDatabaseConnectionString
         }
       ]
     }
@@ -80,44 +63,12 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           }
           env: [
             {
-              name: 'API_URL'
-              value: apiUrl
+              name: 'DATABASE_URL'
+              secretRef: databaseUrlSecretName
             }
             {
-              name: 'AUTH0_RETURN_TO_URL'
-              value: auth0ReturnToUrl
-            }
-            {
-              name: 'AUTH0_CALLBACK_URL'
-              value: auth0CallbackUrl
-            }
-            {
-              name: 'AUTH0_CLIENT_ID'
-              value: auth0ClientId
-            }
-            {
-              name: 'AUTH0_CLIENT_SECRET'
-              secretRef: auth0clientSecretName
-            }
-            {
-              name: 'AUTH0_DOMAIN'
-              value: auth0Domain
-            }
-            {
-              name: 'AUTH0_LOGOUT_URL'
-              value: auth0LogoutUrl
-            }
-            {
-              name: 'AUTH0_MANAGEMENT_APP_CLIENT_ID'
-              value: auth0managementClientId
-            }
-            {
-              name: 'AUTH0_MANAGEMENT_APP_CLIENT_SECRET'
-              secretRef: auth0managementClientSecretName
-            }
-            {
-              name: 'COOKIE_SECRET'
-              secretRef: cookieSecretName
+              name: 'SHADOW_DATABASE_URL'
+              secretRef: databaseUrlSecretName
             }
           ]
           probes: [
