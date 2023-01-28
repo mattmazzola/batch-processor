@@ -67,6 +67,12 @@ export default function Index() {
     }
   }
 
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+
   return (
     <>
       <h1>Enter a value:</h1>
@@ -86,39 +92,45 @@ export default function Index() {
         <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
         <button type="submit">Submit</button>
       </Form>
-      <h1>Results ({results.length}):</h1>
-      <div className="items">
-        <div className="header">ID</div>
-        <div className="header">Value</div>
-        <div className="header">Created At</div>
-        <div className="header">Updated At</div>
-        {results.length === 0
-          ? <div className="empty">No Items</div>
-          : results.map(result => {
-            return <React.Fragment key={result.id}>
-              <div>{result.id}</div>
-              <div><b>{result.value}</b></div>
-              <div>{result.createdAt}</div>
-              <div>{result.updatedAt}</div>
-            </React.Fragment>
-          })}
-      </div>
-      <h1>Items ({items.length}):</h1>
-      <div className="items">
-        <div className="header">ID</div>
-        <div className="header">Value</div>
-        <div className="header">Created At</div>
-        <div className="header">Updated At</div>
-        {items.length === 0
-          ? <div className="empty">No Items</div>
-          : items.map(item => {
-            return <React.Fragment key={item.id}>
-              <div>{item.id}</div>
-              <div><b>{item.value}</b></div>
-              <div>{item.createdAt}</div>
-              <div>{item.updatedAt}</div>
-            </React.Fragment>
-          })}
+      <div className="columns">
+        <div>
+          <h1>Items ({items.length}):</h1>
+          <div className="items">
+            <div className="header">ID</div>
+            <div className="header">Value</div>
+            <div className="header">Created At</div>
+            <div className="header">Updated At</div>
+            {items.length === 0
+              ? <div className="empty">No Items</div>
+              : items.map(item => {
+                return <React.Fragment key={item.id}>
+                  <div>{item.id}</div>
+                  <div><b>{item.value}</b></div>
+                  <div>{dateFormatter.format(new Date(item.createdAt))}</div>
+                  <div>{dateFormatter.format(new Date(item.updatedAt))}</div>
+                </React.Fragment>
+              })}
+          </div>
+        </div>
+        <div>
+          <h1>Results ({results.length}):</h1>
+          <div className="items">
+            <div className="header">ID</div>
+            <div className="header">Value</div>
+            <div className="header">Created At</div>
+            <div className="header">Updated At</div>
+            {results.length === 0
+              ? <div className="empty">No Items</div>
+              : results.map(result => {
+                return <React.Fragment key={result.id}>
+                  <div>{result.id}</div>
+                  <div><b>{result.value}</b></div>
+                  <div>{dateFormatter.format(new Date(result.createdAt))}</div>
+                  <div>{dateFormatter.format(new Date(result.updatedAt))}</div>
+                </React.Fragment>
+              })}
+          </div>
+        </div>
       </div>
     </>
   )
