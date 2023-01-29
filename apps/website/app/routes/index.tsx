@@ -1,8 +1,10 @@
 import { DataFunctionArgs, LinksFunction } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
-import indexStyles from "~/styles/index.css"
-import { db } from "~/services/db.server"
 import React, { createRef } from "react"
+import { millisecondsPerMinute } from "~/constants"
+import { db } from "~/services/db.server"
+import { queueClient } from "~/services/queue.server"
+import indexStyles from "~/styles/index.css"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: indexStyles },
@@ -44,7 +46,11 @@ export const action = async ({ request }: DataFunctionArgs) => {
       break
     }
     case FormSubmissionNames.ProcessValues: {
-      console.log(`Process Values`)
+      const addedMessage = await queueClient.sendMessage('Message Text from Batch-Processor Website', {
+        messageTimeToLive: 1 * millisecondsPerMinute
+      })
+
+      console.log(`Added message: ${addedMessage.messageId} to queue!`)
       break
     }
   }

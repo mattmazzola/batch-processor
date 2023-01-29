@@ -24,7 +24,9 @@ if (messageResponse.receivedMessageItems.length === 0) {
 }
 
 const message = messageResponse.receivedMessageItems.at(0)!
-const messageText = new TextDecoder().decode(Uint8Array.from(Buffer.from(message.messageText, 'base64')))
+const messageText = message.messageText.endsWith('=')
+    ? new TextDecoder().decode(Uint8Array.from(Buffer.from(message.messageText, 'base64')))
+    : message.messageText
 
 const timeFormatter = new Intl.RelativeTimeFormat('en-US', {
     numeric: 'auto'
@@ -41,13 +43,13 @@ console.log(`Text: ${messageText}`)
 console.log(`Dequeuing message: ${message.messageId}`)
 await queueClient.deleteMessage(message.messageId, message.popReceipt)
 
+console.log(`Fetch items from database...`)
 const db = new PrismaClient()
 const items = await db.item.findMany()
 const values = items.map(i => i.value)
-console.log(`Fetched ${values.length} items from database`)
 
+console.log(`Add up ${values.length} values: [${values.join(', ')}]`)
 const total = values.reduce((sum, value) => sum + value, 0)
-console.log(`Add up values: `, values)
 
 const savedResult = await db.result.create({
     data: {
@@ -55,4 +57,4 @@ const savedResult = await db.result.create({
     }
 })
 
-console.log(`Saved sum: `, { savedResult })
+console.log(`Saved sum: ${savedResult.value}`)
