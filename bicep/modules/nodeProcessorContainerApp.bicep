@@ -79,7 +79,7 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
             }
             {
               name: 'SHADOW_DATABASE_URL'
-              secretRef: databaseUrlSecretName
+              secretRef: shadowDatabaseUrlSecretName
             }
             {
               name: 'STORAGE_CONNECTION_STRING'

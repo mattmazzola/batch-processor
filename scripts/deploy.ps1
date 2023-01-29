@@ -6,7 +6,8 @@ $resourceGroupLocation = "westus3"
 echo "PScriptRoot: $PScriptRoot"
 $repoRoot = If ('' -eq $PScriptRoot) {
   "$PSScriptRoot/.."
-} else {
+}
+else {
   "."
 }
 
@@ -74,8 +75,8 @@ $nodeProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodePr
 #     registryPassword=$registryPassword `
 #     imageName=$nodeProcessorImageName `
 #     containerName=$nodeProcessorContainerName `
-#     queueName=$sharedResourceNames.storageQueue `
-#     storageAccountName=$sharedResourceNames.storageAccount `
+#     queueName=$($sharedResourceNames.storageQueue) `
+#     storageAccountName=$($sharedResourceNames.storageAccount) `
 #     storageConnectionString=$storageConnectionString `
 #     databaseConnectionString=$databaseConnectionString `
 #     shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
@@ -90,8 +91,8 @@ az deployment group create `
   registryPassword=$registryPassword `
   imageName=$nodeProcessorImageName `
   containerName=$nodeProcessorContainerName `
-  queueName=$sharedResourceNames.storageQueue `
-  storageAccountName=$sharedResourceNames.storageAccount `
+  queueName=$($sharedResourceNames.storageQueue) `
+  storageAccountName=$($sharedResourceNames.storageAccount) `
   storageConnectionString=$storageConnectionString `
   databaseConnectionString=$databaseConnectionString `
   shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
