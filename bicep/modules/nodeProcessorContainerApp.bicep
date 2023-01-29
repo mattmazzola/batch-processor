@@ -85,6 +85,10 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               name: 'STORAGE_CONNECTION_STRING'
               secretRef: storageConnectionStringSecretName
             }
+            {
+              name: 'STORAGE_QUEUE_NAME'
+              value: queueName
+            }
           ]
         }
       ]
@@ -104,6 +108,12 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
                 accountName: storageAccountName
                 cloud: 'AzurePublicCloud'
               }
+              auth: [
+                {
+                  secretRef: storageConnectionStringSecretName
+                  triggerParameter: 'connnection'
+                }
+              ]
             }
           }
         ]
