@@ -25,6 +25,11 @@ enum FormSubmissionNames {
   ProcessValues = 'ProcessValues',
 }
 
+enum QueueTypes {
+  Node = 'Node',
+  Python = 'Python',
+}
+
 export const action = async ({ request }: DataFunctionArgs) => {
   const rawFormData = await request.formData()
   const formData = Object.fromEntries(rawFormData)
@@ -46,11 +51,21 @@ export const action = async ({ request }: DataFunctionArgs) => {
       break
     }
     case FormSubmissionNames.ProcessValues: {
-      const addedMessage = await queueClient.sendMessage('Message Text from Batch-Processor Website', {
-        messageTimeToLive: 1 * millisecondsPerMinute
-      })
+      const queueType = formData.queueType as QueueTypes
 
-      console.log(`Added message: ${addedMessage.messageId} to queue!`)
+      switch (queueType) {
+        case QueueTypes.Node: {
+          const addedMessage = await queueClient.sendMessage(`Message Text from Batch-Processor Website at ${new Date().toJSON()}`, {
+            messageTimeToLive: 1 * millisecondsPerMinute
+          })
+    
+          console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
+          break;
+        }
+        default: {
+          console.warn(`Queue type ${queueType} not implemented!`)
+        }
+      }
       break
     }
   }
@@ -81,7 +96,7 @@ export default function Index() {
 
   return (
     <>
-      <h1>Enter a value:</h1>
+      <h1>Add Item:</h1>
       <Form method="post" className="addValueForm">
         <input type="hidden" name="formName" value={FormSubmissionNames.AddValue} />
         <div className="row">
@@ -89,15 +104,23 @@ export default function Index() {
           <input ref={valueInputRef} type="number" id="value" name="value" step={1} required defaultValue={0} />
         </div>
         <div className="row">
-          <button ref={submitButtonRef} type="submit">Submit</button>
-          <button type="button" onClick={setRandom}>Set to vandom value</button>
+          <button ref={submitButtonRef} type="submit">Add Value</button>
+          <button type="button" onClick={setRandom}>Add Random value</button>
         </div>
       </Form>
-      <h1>Click the button to process</h1>
-      <Form method="post" className="processingForm">
-        <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-        <button type="submit">Submit</button>
-      </Form>
+      <h1>Process Items:</h1>
+      <div className="processingForm">
+        <Form method="post" >
+          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+          <input type="hidden" name="queueType" value={QueueTypes.Node} />
+          <button type="submit">Add to Node Queue</button>
+        </Form>
+        <Form method="post" >
+          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+          <input type="hidden" name="queueType" value={QueueTypes.Python} />
+          <button type="submit">Add to Python Queue</button>
+        </Form>
+      </div>
       <div className="columns">
         <div>
           <h1>Items ({items.length}):</h1>
