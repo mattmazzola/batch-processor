@@ -13,5 +13,10 @@
 			"source.fixAll": true,
 			"source.organizeImports": true
 		}
+	},
+	"extensions": {
+		"recommendations": [
+			"EditorConfig.EditorConfig"
+		]
 	}
 }

@@ -26,6 +26,7 @@ Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
 $shadowDatabaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $sharedResourceNames.storageAccount --query "connectionString" -o tsv)
+# $storageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[].name" -o tsv)
 
 Write-Step "Fetch params from Azure"
 $containerAppsEnvResourceId = $(az containerapp env show -g $sharedResourceGroupName -n $sharedResourceNames.containerAppsEnv --query "id" -o tsv)
@@ -46,6 +47,7 @@ $data = [ordered]@{
   "databaseConnectionString"       = "$($databaseConnectionString.Substring(0, 15))..."
   "shadowDatabaseConnectionString" = "$($shadowDatabaseConnectionString.Substring(0, 15))..."
   "storageConnectionString"        = "$($storageConnectionString.Substring(0, 15))..."
+  "storageQueueName"               = $storageQueueName
 
   "nodeProcessorImageName"         = $nodeProcessorImageName
   "clientImageName"                = $clientImageName
