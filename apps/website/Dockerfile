@@ -55,6 +55,7 @@ COPY --from=build /myapp/start.sh /myapp/start.sh
 COPY --from=build /myapp/prisma /myapp/prisma
 
 RUN chmod +x ./start.sh
+USER node
 
 ENTRYPOINT [ "npm", "run", "start" ]
 # ENTRYPOINT [ "sh", "./start.sh" ]

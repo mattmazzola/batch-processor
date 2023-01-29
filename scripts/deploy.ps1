@@ -3,6 +3,15 @@ $sharedRgString = 'klgoyi'
 $resourceGroupName = "batch-processor"
 $resourceGroupLocation = "westus3"
 
+echo "PScriptRoot: $PScriptRoot"
+$repoRoot = If ('' -eq $PScriptRoot) {
+  "$PSScriptRoot/.."
+} else {
+  "."
+}
+
+echo "Repo Root: $repoRoot"
+
 Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
 
 $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgString
@@ -10,7 +19,8 @@ $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgStrin
 Write-Step "Create Resource Group: $resourceGroupName"
 az group create -l $resourceGroupLocation -g $resourceGroupName --query name -o tsv
 
-$envFilePath = $(Resolve-Path "$PSScriptRoot/.env").Path
+$envFilePath = $(Resolve-Path "$repoRoot/scripts/.env").Path
+
 Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
 $shadowDatabaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
@@ -48,13 +58,13 @@ $data = [ordered]@{
 Write-Hash "Data" $data
 
 Write-Step "Build and Push $nodeProcessorImageName Image"
-docker build -t $nodeProcessorImageName "$PSScriptRoot/../services/processor"
+docker build -t $nodeProcessorImageName "$repoRoot/services/processor"
 docker push $nodeProcessorImageName
 # TODO: Investigate why using 'az acr build' does not work
 # az acr build -r $registryUrl -t $nodeProcessorImageName ./services/processor
 
 Write-Step "Deploy $nodeProcessorImageName Container App"
-$nodeProcessorBicepContainerDeploymentFilePath = "$PSScriptRoot/../bicep/modules/nodeProcessorContainerApp.bicep"
+$nodeProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodeProcessorContainerApp.bicep"
 # az deployment group create `
 #     -g $resourceGroupName `
 #     -f $nodeProcessorBicepContainerDeploymentFilePath `
@@ -72,27 +82,30 @@ $nodeProcessorBicepContainerDeploymentFilePath = "$PSScriptRoot/../bicep/modules
 #     --what-if
 
 az deployment group create `
-    -g $resourceGroupName `
-    -f $nodeProcessorBicepContainerDeploymentFilePath `
-    -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
-    registryUrl=$registryUrl `
-    registryUsername=$registryUsername `
-    registryPassword=$registryPassword `
-    imageName=$nodeProcessorImageName `
-    containerName=$nodeProcessorContainerName `
-    queueName=$sharedResourceNames.storageQueue `
-    storageAccountName=$sharedResourceNames.storageAccount `
-    storageConnectionString=$storageConnectionString `
-    databaseConnectionString=$databaseConnectionString `
-    shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
-    --query "properties.provisioningState" `
-    -o tsv
+  -g $resourceGroupName `
+  -f $nodeProcessorBicepContainerDeploymentFilePath `
+  -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
+  registryUrl=$registryUrl `
+  registryUsername=$registryUsername `
+  registryPassword=$registryPassword `
+  imageName=$nodeProcessorImageName `
+  containerName=$nodeProcessorContainerName `
+  queueName=$sharedResourceNames.storageQueue `
+  storageAccountName=$sharedResourceNames.storageAccount `
+  storageConnectionString=$storageConnectionString `
+  databaseConnectionString=$databaseConnectionString `
+  shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
+  --query "properties.provisioningState" `
+  -o tsv
 
 Write-Step "Build and Push $clientImageName Image"
-az acr build -r $registryUrl -t $clientImageName "$PSScriptRoot/../apps/website"
+docker build -t $clientImageName "$repoRoot/apps/website"
+docker push $clientImageName
+
+# az acr build -r $registryUrl -t $clientImageName "$repoRoot/apps/website"
 
 Write-Step "Deploy $clientImageName Container App"
-$clientBicepContainerDeploymentFilePath = "$PSScriptRoot/../bicep/modules/clientContainerApp.bicep"
+$clientBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/clientContainerApp.bicep"
 $clientFqdn = $(az deployment group create `
     -g $resourceGroupName `
     -f $clientBicepContainerDeploymentFilePath `
@@ -109,6 +122,3 @@ $clientFqdn = $(az deployment group create `
 
 $clientUrl = "https://$clientFqdn"
 Write-Output $clientUrl
-
-Write-Output "Service URL: $apiUrl"
-Write-Output "Client URL: $clientUrl"
