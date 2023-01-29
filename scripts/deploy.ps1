@@ -118,6 +118,8 @@ $clientFqdn = $(az deployment group create `
     registryPassword=$registryPassword `
     imageName=$clientImageName `
     containerName=$clientContainerName `
+    queueName=$($sharedResourceNames.storageQueue) `
+    storageConnectionString=$storageConnectionString `
     databaseConnectionString=$databaseConnectionString `
     shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
     --query "properties.outputs.fqdn.value" `

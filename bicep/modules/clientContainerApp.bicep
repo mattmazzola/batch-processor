@@ -9,6 +9,10 @@ param registryUsername string
 @secure()
 param registryPassword string
 
+param queueName string
+@secure()
+param storageConnectionString string
+
 @secure()
 param databaseConnectionString string
 @secure()
@@ -17,6 +21,7 @@ param shadowDatabaseConnectionString string
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var shadowDatabaseUrlSecretName = 'shadow-db-url'
+var storageConnectionStringSecretName = 'queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -49,6 +54,10 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           name: shadowDatabaseUrlSecretName
           value: shadowDatabaseConnectionString
         }
+        {
+          name: storageConnectionStringSecretName
+          value: storageConnectionString
+        }
       ]
     }
     template: {
@@ -70,6 +79,14 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               name: 'SHADOW_DATABASE_URL'
               secretRef: databaseUrlSecretName
             }
+            {
+              name: 'STORAGE_CONNECTION_STRING'
+              secretRef: storageConnectionStringSecretName
+            }
+            {
+              name: 'STORAGE_QUEUE_NAME'
+              value: queueName
+            }
           ]
           probes: [
             {
@@ -79,7 +96,7 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
                 port: 80
               }
             }
-          ] 
+          ]
         }
       ]
       scale: {
