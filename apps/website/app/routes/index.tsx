@@ -58,7 +58,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
           const addedMessage = await queueClient.sendMessage(`Message Text from Batch-Processor Website at ${new Date().toJSON()}`, {
             messageTimeToLive: 1 * millisecondsPerMinute
           })
-    
+
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
           break;
         }
@@ -89,6 +89,7 @@ export default function Index() {
   }
 
   const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    weekday: 'short',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -128,7 +129,6 @@ export default function Index() {
             <div className="header">ID</div>
             <div className="header">Value</div>
             <div className="header">Created At</div>
-            <div className="header">Updated At</div>
             {items.length === 0
               ? <div className="empty">No Items</div>
               : items.map(item => {
@@ -136,7 +136,6 @@ export default function Index() {
                   <div>{item.id}</div>
                   <div><b>{item.value}</b></div>
                   <div>{dateFormatter.format(new Date(item.createdAt))}</div>
-                  <div>{dateFormatter.format(new Date(item.updatedAt))}</div>
                 </React.Fragment>
               })}
           </div>
@@ -147,7 +146,6 @@ export default function Index() {
             <div className="header">ID</div>
             <div className="header">Value</div>
             <div className="header">Created At</div>
-            <div className="header">Updated At</div>
             {results.length === 0
               ? <div className="empty">No Items</div>
               : results.map(result => {
@@ -155,7 +153,6 @@ export default function Index() {
                   <div>{result.id}</div>
                   <div><b>{result.value}</b></div>
                   <div>{dateFormatter.format(new Date(result.createdAt))}</div>
-                  <div>{dateFormatter.format(new Date(result.updatedAt))}</div>
                 </React.Fragment>
               })}
           </div>
