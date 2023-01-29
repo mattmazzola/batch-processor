@@ -7,7 +7,7 @@ npm run dev
 ## Docker
 
 ```
-docker build -t batchprocessor-client .
+docker build -t batch-processor-client .
 ```
 
 ```powershell
@@ -26,7 +26,7 @@ docker run -it --rm `
     -p 3000:8080 `
     -e DATABASE_URL=$databaseUrl `
     -e SHADOW_DATABASE_URL=$shadowDatabaseUrl `
-    batchprocessor-client
+    batch-processor-client
 ```
 
 ## 1 Run SQL Database Locally
