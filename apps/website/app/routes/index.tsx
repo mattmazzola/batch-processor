@@ -63,7 +63,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
       switch (queueType) {
         case QueueTypes.Node: {
-          const addedMessage = await nodeQueueClient.sendMessage(`Message Text in ${QueueTypes.Node} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
+          const addedMessage = await nodeQueueClient.sendMessage(`Message Text in ${queueType} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
             messageTimeToLive: 1 * millisecondsPerMinute
           })
 
@@ -71,7 +71,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
           break;
         }
         case QueueTypes.Python: {
-          const addedMessage = await pythonQueueClient.sendMessage(`Message Text in ${QueueTypes.Node} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
+          const addedMessage = await pythonQueueClient.sendMessage(`Message Text in ${queueType} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
             messageTimeToLive: 1 * millisecondsPerMinute
           })
 
