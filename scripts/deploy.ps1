@@ -56,6 +56,14 @@ $data = [ordered]@{
 
 Write-Hash "Data" $data
 
+Write-Step "Provision Resources"
+$mainBicepFile = "$repoRoot/bicep/main.bicep"
+az deployment group create `
+  -g $sharedResourceGroupName `
+  -f $mainBicepFile `
+  --query "properties.provisioningState" `
+  -o tsv
+
 Write-Step "Build and Push $nodeProcessorImageName Image"
 docker build -t $nodeProcessorImageName "$repoRoot/services/processor"
 docker push $nodeProcessorImageName
