@@ -6,3 +6,10 @@ module sqlDatabase 'modules/sqlDatabase.bicep' = {
     uniqueRgString: uniqueRgString
   }
 }
+
+module storageQueues 'modules/storageQueues.bicep' = {
+  name: 'storageQueuesModule'
+  params: {
+    uniqueRgString: uniqueRgString
+  }
+}

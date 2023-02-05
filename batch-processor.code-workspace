@@ -12,7 +12,8 @@
 		"editor.codeActionsOnSave": {
 			"source.fixAll": true,
 			"source.organizeImports": true
-		}
+		},
+		"powershell.cwd": "c:\\repos\\batch-processor"
 	},
 	"extensions": {
 		"recommendations": [
