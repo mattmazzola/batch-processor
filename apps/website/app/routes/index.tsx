@@ -3,7 +3,7 @@ import { Form, useLoaderData } from "@remix-run/react"
 import React, { createRef } from "react"
 import { millisecondsPerMinute } from "~/constants"
 import { db } from "~/services/db.server"
-import { queueClient } from "~/services/queue.server"
+import { nodeQueueClient, pythonQueueClient } from "~/services/queue.server"
 import indexStyles from "~/styles/index.css"
 
 export const links: LinksFunction = () => [
@@ -14,9 +14,17 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   const items = await db.item.findMany()
   const results = await db.result.findMany()
 
+  const nodeMessagesResponse = await nodeQueueClient.peekMessages({ numberOfMessages: 32 })
+  const nodeMessageCount =  nodeMessagesResponse.peekedMessageItems.length
+
+  const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
+  const pythonMessageCount =  pythonMessagesResponse.peekedMessageItems.length
+
   return {
     items,
     results,
+    nodeMessageCount,
+    pythonMessageCount,
   }
 }
 
@@ -55,7 +63,15 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
       switch (queueType) {
         case QueueTypes.Node: {
-          const addedMessage = await queueClient.sendMessage(`Message Text from Batch-Processor Website at ${new Date().toJSON()}`, {
+          const addedMessage = await nodeQueueClient.sendMessage(`Message Text in ${QueueTypes.Node} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
+            messageTimeToLive: 1 * millisecondsPerMinute
+          })
+
+          console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
+          break;
+        }
+        case QueueTypes.Python: {
+          const addedMessage = await pythonQueueClient.sendMessage(`Message Text in ${QueueTypes.Node} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
             messageTimeToLive: 1 * millisecondsPerMinute
           })
 
@@ -74,7 +90,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
 }
 
 export default function Index() {
-  const { items, results } = useLoaderData<typeof loader>()
+  const { items, results, nodeMessageCount, pythonMessageCount } = useLoaderData<typeof loader>()
   const valueInputRef = createRef<HTMLInputElement>()
   const submitButtonRef = createRef<HTMLButtonElement>()
   const setRandom = () => {
@@ -114,12 +130,12 @@ export default function Index() {
         <Form method="post" >
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.Node} />
-          <button type="submit">Add to Node Queue</button>
+          <button type="submit">{`Add to Node Queue (Size ${nodeMessageCount})`}</button>
         </Form>
         <Form method="post" >
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.Python} />
-          <button type="submit">Add to Python Queue</button>
+          <button type="submit">{`Add to Python Queue (Size ${pythonMessageCount})`}</button>
         </Form>
       </div>
       <div className="columns">

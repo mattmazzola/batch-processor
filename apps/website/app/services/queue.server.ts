@@ -8,13 +8,18 @@ if (typeof process.env.STORAGE_QUEUE_NAME !== 'string') {
     throw new Error(`You attempt to run container without providing the STORAGE_QUEUE_NAME`)
 }
 
+if (typeof process.env.STORAGE_PYTHON_QUEUE_NAME !== 'string') {
+    throw new Error(`You attempt to run container without providing the STORAGE_PYTHON_QUEUE_NAME`)
+}
 
 let queueServiceClient: QueueServiceClient
-let queueClient: QueueClient
+let nodeQueueClient: QueueClient
+let pythonQueueClient: QueueClient
 
 declare global {
     var __queueServiceClient: QueueServiceClient | undefined
-    var __queueClient: QueueClient | undefined
+    var __nodeQueueClient: QueueClient | undefined
+    var __pythonQueueClient: QueueClient | undefined
 }
 
 // this is needed because in development we don't want to restart
@@ -22,7 +27,8 @@ declare global {
 // create a new connection to the DB with every change either.
 if (process.env.NODE_ENV === "production") {
     queueServiceClient = QueueServiceClient.fromConnectionString(process.env.STORAGE_CONNECTION_STRING)
-    queueClient = queueServiceClient.getQueueClient(process.env.STORAGE_QUEUE_NAME)
+    nodeQueueClient = queueServiceClient.getQueueClient(process.env.STORAGE_QUEUE_NAME)
+    pythonQueueClient = queueServiceClient.getQueueClient(process.env.STORAGE_PYTHON_QUEUE_NAME)
 } else {
     if (!global.__queueServiceClient) {
         global.__queueServiceClient = QueueServiceClient.fromConnectionString(process.env.STORAGE_CONNECTION_STRING)
@@ -30,14 +36,17 @@ if (process.env.NODE_ENV === "production") {
 
     queueServiceClient = global.__queueServiceClient
 
-    if (!global.__queueClient) {
-        global.__queueClient = global.__queueServiceClient.getQueueClient(process.env.STORAGE_QUEUE_NAME)
+    if (!global.__nodeQueueClient || !global.__pythonQueueClient) {
+        global.__nodeQueueClient = global.__queueServiceClient.getQueueClient(process.env.STORAGE_QUEUE_NAME)
+        global.__pythonQueueClient = global.__queueServiceClient.getQueueClient(process.env.STORAGE_PYTHON_QUEUE_NAME)
     }
 
-    queueClient = global.__queueClient
+    nodeQueueClient = global.__nodeQueueClient
+    pythonQueueClient = global.__pythonQueueClient
 }
 
 export {
-    queueClient
+    nodeQueueClient,
+    pythonQueueClient,
 }
 
