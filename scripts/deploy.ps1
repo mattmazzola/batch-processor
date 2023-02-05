@@ -29,11 +29,7 @@ $storageConnectionString = $(az storage account show-connection-string -g $share
 $storageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[].name" -o tsv)
 
 Write-Step "Fetch params from Azure"
-$containerAppsEnvResourceId = $(az containerapp env show -g $sharedResourceGroupName -n $sharedResourceNames.containerAppsEnv --query "id" -o tsv)
-$acrJson = $(az acr credential show -n $sharedResourceNames.containerRegistry --query "{ username:username, password:passwords[0].value }" | ConvertFrom-Json)
-$registryUrl = $(az acr show -g $sharedResourceGroupName -n $sharedResourceNames.containerRegistry --query "loginServer" -o tsv)
-$registryUsername = $acrJson.username
-$registryPassword = $acrJson.password
+$sharedResourceVars = Get-SharedResourceDeploymentVars $sharedResourceGroupName $sharedRgString
 
 $nodeProcessorContainerName = "$resourceGroupName-node"
 $nodeProcessorImageTag = $(Get-Date -Format "yyyyMMddhhmm")
@@ -52,10 +48,10 @@ $data = [ordered]@{
   "nodeProcessorImageName"         = $nodeProcessorImageName
   "clientImageName"                = $clientImageName
 
-  "containerAppsEnvResourceId"     = $containerAppsEnvResourceId
-  "registryUrl"                    = $registryUrl
-  "registryUsername"               = $registryUsername
-  "registryPassword"               = "$($registryPassword.Substring(0, 5))..."
+  "containerAppsEnvResourceId"     = $($sharedResourceVars.containerAppsEnvResourceId)
+  "registryUrl"                    = $($sharedResourceVars.registryUrl)
+  "registryUsername"               = $($sharedResourceVars.registryUsername)
+  "registryPassword"               = "$($($sharedResourceVars.registryPassword).Substring(0, 5))..."
 }
 
 Write-Hash "Data" $data
@@ -112,10 +108,10 @@ $clientBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/clientContain
 $clientFqdn = $(az deployment group create `
     -g $resourceGroupName `
     -f $clientBicepContainerDeploymentFilePath `
-    -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
-    registryUrl=$registryUrl `
-    registryUsername=$registryUsername `
-    registryPassword=$registryPassword `
+    -p managedEnvironmentResourceId=$($sharedResourceVars.containerAppsEnvResourceId) `
+    registryUrl=$($sharedResourceVars.registryUrl) `
+    registryUsername=$($sharedResourceVars.registryUsername) `
+    registryPassword=$($sharedResourceVars.registryPassword) `
     imageName=$clientImageName `
     containerName=$clientContainerName `
     queueName=$($sharedResourceNames.storageQueue) `
