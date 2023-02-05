@@ -18,12 +18,9 @@ param storageConnectionString string
 
 @secure()
 param databaseConnectionString string
-@secure()
-param shadowDatabaseConnectionString string
 
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
-var shadowDatabaseUrlSecretName = 'shadow-db-url'
 var storageConnectionStringSecretName = 'queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
@@ -50,10 +47,6 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           value: databaseConnectionString
         }
         {
-          name: shadowDatabaseUrlSecretName
-          value: shadowDatabaseConnectionString
-        }
-        {
           name: storageConnectionStringSecretName
           value: storageConnectionString
         }
@@ -76,10 +69,6 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
             {
               name: 'DATABASE_URL'
               secretRef: databaseUrlSecretName
-            }
-            {
-              name: 'SHADOW_DATABASE_URL'
-              secretRef: shadowDatabaseUrlSecretName
             }
             {
               name: 'STORAGE_CONNECTION_STRING'
