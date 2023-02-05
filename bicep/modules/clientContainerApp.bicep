@@ -9,7 +9,8 @@ param registryUsername string
 @secure()
 param registryPassword string
 
-param queueName string
+param nodeQueueName string
+param pythonQueueName string
 @secure()
 param storageConnectionString string
 
@@ -74,8 +75,12 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               secretRef: storageConnectionStringSecretName
             }
             {
-              name: 'STORAGE_QUEUE_NAME'
-              value: queueName
+              name: 'STORAGE_NODE_QUEUE_NAME'
+              value: nodeQueueName
+            }
+            {
+              name: 'STORAGE_PYTHON_QUEUE_NAME'
+              value: pythonQueueName
             }
           ]
         }

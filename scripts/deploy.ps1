@@ -139,7 +139,8 @@ $clientFqdn = $(az deployment group create `
     registryPassword=$($sharedResourceVars.registryPassword) `
     imageName=$clientImageName `
     containerName=$clientContainerName `
-    queueName=$($sharedResourceNames.storageQueue) `
+    nodeQueueName=$nodeQueueName `
+    pythonQueueName=$pythonQueueName `
     storageConnectionString=$storageConnectionString `
     databaseConnectionString=$databaseConnectionString `
     --query "properties.outputs.fqdn.value" `
