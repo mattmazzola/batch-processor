@@ -5,12 +5,16 @@ import dotenv from 'dotenv-flow'
 dotenv.config()
 
 console.log(`Validate environment variables...`)
+if (typeof process.env.DATABASE_URL !== 'string') {
+    throw new Error(`You attempted to run the container without providing the DATABASE_URL`)
+}
+
 if (typeof process.env.STORAGE_CONNECTION_STRING !== 'string') {
-    throw new Error(`You attempt to run container without providing the STORAGE_CONNECTION_STRING`)
+    throw new Error(`You attempted to run the container without providing the STORAGE_CONNECTION_STRING`)
 }
 
 if (typeof process.env.STORAGE_QUEUE_NAME !== 'string') {
-    throw new Error(`You attempt to run container without providing the STORAGE_QUEUE_NAME`)
+    throw new Error(`You attempted to run the container without providing the STORAGE_QUEUE_NAME`)
 }
 
 const queueServiceClient = QueueServiceClient.fromConnectionString(process.env.STORAGE_CONNECTION_STRING)

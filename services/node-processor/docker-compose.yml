@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - SHADOW_DATABASE_URL=${SHADOW_DATABASE_URL}
       - STORAGE_CONNECTION_STRING=${STORAGE_CONNECTION_STRING}
       - STORAGE_QUEUE_NAME=${STORAGE_QUEUE_NAME}
-  
+
