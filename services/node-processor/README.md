@@ -19,13 +19,11 @@ $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgStrin
 
 $envFilePath = $(Resolve-Path ".env").Path
 $databaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
-$shadowDatabaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $sharedResourceNames.storageAccount --query "connectionString" -o tsv)
 
 docker run -it `
     --rm `
     -e DATABASE_URL=$databaseUrl `
-    -e SHADOW_DATABASE_URL=$shadowDatabaseUrl `
     -d STORAGE_CONNECTION_STRING=$storageConnectionString `
     processor-node
 ```

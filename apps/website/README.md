@@ -20,12 +20,10 @@ $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgStrin
 
 $envFilePath = $(Resolve-Path ".env").Path
 $databaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
-$shadowDatabaseUrl = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
 
 docker run -it --rm `
     -p 3000:8080 `
     -e DATABASE_URL=$databaseUrl `
-    -e SHADOW_DATABASE_URL=$shadowDatabaseUrl `
     batch-processor-client
 ```
 
@@ -47,8 +45,6 @@ docker exec -it sql1 "bash"
 
 ```
 CREATE DATABASE batchprocessor
-GO
-CREATE DATABASE batchprocessorshadow
 GO
 ```
 
