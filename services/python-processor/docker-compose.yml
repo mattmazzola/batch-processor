@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - STORAGE_CONNECTION_STRING=${STORAGE_CONNECTION_STRING}
+      - STORAGE_QUEUE_NAME=${STORAGE_QUEUE_NAME}

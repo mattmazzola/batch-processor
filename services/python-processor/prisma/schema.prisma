@@ -1,0 +1,25 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  value     Int
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  value     Int
+}

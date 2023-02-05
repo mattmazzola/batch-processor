@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "python-processor"
+version = "0.1.0"
+description = ""
+authors = ["Matt Mazzola <mattmazzola@live.com>"]
+readme = "README.md"
+packages = [{include = "python_processor"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+azure-storage-queue = "^12.5.0"
+python-dotenv = "^0.21.1"
+prisma = "^0.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
