@@ -1,23 +1,24 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../shared-resources"
-		}
-	],
-	"settings": {
-		"dotenv.enableAutocloaking": false,
-		"editor.codeActionsOnSave": {
-			"source.fixAll": true,
-			"source.organizeImports": true
-		},
-		"powershell.cwd": "c:\\repos\\batch-processor"
-	},
-	"extensions": {
-		"recommendations": [
-			"EditorConfig.EditorConfig"
-		]
-	}
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "../shared-resources"
+        }
+    ],
+    "settings": {
+        "dotenv.enableAutocloaking": false,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true,
+            "source.organizeImports": true
+        },
+        "powershell.cwd": "c:\\repos\\batch-processor",
+        "python.analysis.typeCheckingMode": "basic"
+    },
+    "extensions": {
+        "recommendations": [
+            "EditorConfig.EditorConfig"
+        ]
+    }
 }
