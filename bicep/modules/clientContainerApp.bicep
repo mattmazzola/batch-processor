@@ -19,7 +19,6 @@ param databaseConnectionString string
 
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
-var shadowDatabaseUrlSecretName = 'shadow-db-url'
 var storageConnectionStringSecretName = 'queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
