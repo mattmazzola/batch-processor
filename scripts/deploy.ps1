@@ -1,7 +1,7 @@
 $sharedResourceGroupName = "shared"
 $sharedRgString = 'klgoyi'
-$resourceGroupName = "batch-processor"
 $resourceGroupLocation = "westus3"
+$batchProcessorResourceGroupName = "batch-processor"
 
 echo "PScriptRoot: $PScriptRoot"
 $repoRoot = If ('' -eq $PScriptRoot) {
@@ -17,8 +17,8 @@ Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
 
 $sharedResourceNames = Get-ResourceNames $sharedResourceGroupName $sharedRgString
 
-Write-Step "Create Resource Group: $resourceGroupName"
-az group create -l $resourceGroupLocation -g $resourceGroupName --query name -o tsv
+Write-Step "Create Resource Group: $batchProcessorResourceGroupName"
+az group create -l $resourceGroupLocation -g $batchProcessorResourceGroupName --query name -o tsv
 
 $envFilePath = $(Resolve-Path "$repoRoot/scripts/.env").Path
 
@@ -31,13 +31,13 @@ $storageQueueName = $(az storage queue list --connection-string $storageConnecti
 Write-Step "Fetch params from Azure"
 $sharedResourceVars = Get-SharedResourceDeploymentVars $sharedResourceGroupName $sharedRgString
 
-$nodeProcessorContainerName = "$resourceGroupName-node"
+$nodeProcessorContainerName = "$batchProcessorResourceGroupName-node"
 $nodeProcessorImageTag = $(Get-Date -Format "yyyyMMddhhmm")
-$nodeProcessorImageName = "${registryUrl}/${nodeProcessorContainerName}:${nodeProcessorImageTag}"
+$nodeProcessorImageName = "$($sharedResourceVars.registryUrl)/${nodeProcessorContainerName}:${nodeProcessorImageTag}"
 
-$clientContainerName = "$resourceGroupName-client"
+$clientContainerName = "$batchProcessorResourceGroupName-client"
 $clientImageTag = $(Get-Date -Format "yyyyMMddhhmm")
-$clientImageName = "${registryUrl}/${clientContainerName}:${clientImageTag}"
+$clientImageName = "$($sharedResourceVars.registryUrl)/${clientContainerName}:${clientImageTag}"
 
 $data = [ordered]@{
   "databaseConnectionString"       = "$($databaseConnectionString.Substring(0, 15))..."
@@ -73,12 +73,12 @@ docker push $nodeProcessorImageName
 Write-Step "Deploy $nodeProcessorImageName Container App"
 $nodeProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodeProcessorContainerApp.bicep"
 # az deployment group create `
-#     -g $resourceGroupName `
+#     -g $batchProcessorResourceGroupName `
 #     -f $nodeProcessorBicepContainerDeploymentFilePath `
-#     -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
-#     registryUrl=$registryUrl `
-#     registryUsername=$registryUsername `
-#     registryPassword=$registryPassword `
+#     -p managedEnvironmentResourceId=$($sharedResourceVars.containerAppsEnvResourceId) `
+#     registryUrl=$($sharedResourceVars.registryUrl) `
+#     registryUsername=$($sharedResourceVars.registryUsername) `
+#     registryPassword=$($sharedResourceVars.registryPassword) `
 #     imageName=$nodeProcessorImageName `
 #     containerName=$nodeProcessorContainerName `
 #     queueName=$($sharedResourceNames.storageQueue) `
@@ -89,12 +89,12 @@ $nodeProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodePr
 #     --what-if
 
 az deployment group create `
-  -g $resourceGroupName `
+  -g $batchProcessorResourceGroupName `
   -f $nodeProcessorBicepContainerDeploymentFilePath `
-  -p managedEnvironmentResourceId=$containerAppsEnvResourceId `
-  registryUrl=$registryUrl `
-  registryUsername=$registryUsername `
-  registryPassword=$registryPassword `
+  -p managedEnvironmentResourceId=$($sharedResourceVars.containerAppsEnvResourceId) `
+  registryUrl=$($sharedResourceVars.registryUrl) `
+  registryUsername=$($sharedResourceVars.registryUsername) `
+  registryPassword=$($sharedResourceVars.registryPassword) `
   imageName=$nodeProcessorImageName `
   containerName=$nodeProcessorContainerName `
   queueName=$($sharedResourceNames.storageQueue) `
@@ -114,7 +114,7 @@ docker push $clientImageName
 Write-Step "Deploy $clientImageName Container App"
 $clientBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/clientContainerApp.bicep"
 $clientFqdn = $(az deployment group create `
-    -g $resourceGroupName `
+    -g $batchProcessorResourceGroupName `
     -f $clientBicepContainerDeploymentFilePath `
     -p managedEnvironmentResourceId=$($sharedResourceVars.containerAppsEnvResourceId) `
     registryUrl=$($sharedResourceVars.registryUrl) `
