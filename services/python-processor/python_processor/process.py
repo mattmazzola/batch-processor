@@ -22,23 +22,40 @@ async def main() -> None:
     if STORAGE_CONNECTION_STRING is None:
         raise Exception(f'You attempted to run the container without providing the STORAGE_QUEUE_NAME')
 
+    assert STORAGE_QUEUE_NAME is not None
+
     queue_client = QueueClient.from_connection_string(STORAGE_CONNECTION_STRING, STORAGE_QUEUE_NAME)
     print(f'Client created for: {STORAGE_QUEUE_NAME}')
 
     messages = queue_client.receive_messages()
 
+    db: Prisma | None = None
+
     for message in messages:
         print(f'Dequeueing message: {message.content}')
         queue_client.delete_message(message.id, message.pop_receipt)
 
-    prisma = Prisma()
-    await prisma.connect()
+        db = Prisma()
+        await db.connect()
+        print(f'Connected to database')
 
-    print(f'Connected to database')
+        print(f'Fetch items from database...')
+        items = await db.item.find_many()
+        values = [i.value for i in items]
+        print(f'Add up {len(values)} values: {values}')
 
-    print(f'Fetch items from database...')
+        total = sum(values)
 
-    await prisma.disconnect()
+        saved_result = await db.result.create(data={
+            'value': total
+        })
+
+        print(f'Saved sum: {saved_result.value}')
+
+    if db is not None:
+        await db.disconnect()
+
+    exit(0)
 
 if __name__ == '__main__':
     asyncio.run(main())
