@@ -24,7 +24,6 @@ $envFilePath = $(Resolve-Path "$repoRoot/scripts/.env").Path
 
 Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
-$shadowDatabaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'SHADOW_DATABASE_URL'
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $sharedResourceNames.storageAccount --query "connectionString" -o tsv)
 $storageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[].name" -o tsv)
 
@@ -41,7 +40,6 @@ $clientImageName = "$($sharedResourceVars.registryUrl)/${clientContainerName}:${
 
 $data = [ordered]@{
   "databaseConnectionString"       = "$($databaseConnectionString.Substring(0, 15))..."
-  "shadowDatabaseConnectionString" = "$($shadowDatabaseConnectionString.Substring(0, 15))..."
   "storageConnectionString"        = "$($storageConnectionString.Substring(0, 15))..."
   "storageQueueName"               = $storageQueueName
 
@@ -103,7 +101,6 @@ az deployment group create `
   storageAccountName=$($sharedResourceNames.storageAccount) `
   storageConnectionString=$storageConnectionString `
   databaseConnectionString=$databaseConnectionString `
-  shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
   --query "properties.provisioningState" `
   -o tsv
 
@@ -127,7 +124,6 @@ $clientFqdn = $(az deployment group create `
     queueName=$($sharedResourceNames.storageQueue) `
     storageConnectionString=$storageConnectionString `
     databaseConnectionString=$databaseConnectionString `
-    shadowDatabaseConnectionString=$shadowDatabaseConnectionString `
     --query "properties.outputs.fqdn.value" `
     -o tsv)
 
