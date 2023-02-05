@@ -37,17 +37,17 @@ RUN npm run build
 # Finally, build the production image with minimal footprint
 FROM base
 
-ENV PORT="8080"
-ENV NODE_ENV="production"
-
-WORKDIR /myapp
-
 COPY --from=production-deps /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 
+COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/start.sh /myapp/start.sh
 COPY --from=build /myapp/prisma /myapp/prisma
+
+ENV PORT="8080"
+ENV NODE_ENV="production"
+
+WORKDIR /myapp
 
 ENTRYPOINT [ "sh", "./start.sh" ]
