@@ -58,3 +58,4 @@ const savedResult = await db.result.create({
 })
 
 console.log(`Saved sum: ${savedResult.value}`)
+process.exit(0)
