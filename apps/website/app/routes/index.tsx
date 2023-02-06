@@ -15,10 +15,10 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   const results = await db.result.findMany()
 
   const nodeMessagesResponse = await nodeQueueClient.peekMessages({ numberOfMessages: 32 })
-  const nodeMessageCount =  nodeMessagesResponse.peekedMessageItems.length
+  const nodeMessageCount = nodeMessagesResponse.peekedMessageItems.length
 
   const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
-  const pythonMessageCount =  pythonMessagesResponse.peekedMessageItems.length
+  const pythonMessageCount = pythonMessagesResponse.peekedMessageItems.length
 
   return {
     items,
@@ -34,8 +34,9 @@ enum FormSubmissionNames {
 }
 
 enum QueueTypes {
-  Node = 'Node',
-  Python = 'Python',
+  NodeStorage = 'Node Storage',
+  NodeServiceBus = 'Node Service Bus',
+  PythonStorage = 'Python Storage',
 }
 
 type MessageContent = {
@@ -67,6 +68,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
       })
       break
     }
+
     case FormSubmissionNames.ProcessValues: {
       const queueType = formData.queueType as QueueTypes
       const messageJson: MessageContent = {
@@ -79,26 +81,27 @@ export const action = async ({ request }: DataFunctionArgs) => {
       }
 
       switch (queueType) {
-        case QueueTypes.Node: {
+        case QueueTypes.NodeStorage: {
           const addedMessage = await nodeQueueClient.sendMessage(JSON.stringify(messageJson), {
             messageTimeToLive: 10 * secondsPerMinute
           })
 
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
-          break;
+          break
         }
-        case QueueTypes.Python: {
+        case QueueTypes.PythonStorage: {
           const addedMessage = await pythonQueueClient.sendMessage(JSON.stringify(messageJson), {
             messageTimeToLive: 10 * secondsPerMinute
           })
 
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
-          break;
+          break
         }
         default: {
           console.warn(`Queue type ${queueType} not implemented!`)
         }
       }
+
       break
     }
   }
@@ -144,15 +147,26 @@ export default function Index() {
       </Form>
       <h1>Process Items:</h1>
       <div className="processingForm">
-        <Form method="post" >
+        <Form method="post" className="processingQueue">
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-          <input type="hidden" name="queueType" value={QueueTypes.Node} />
-          <button type="submit">{`Add to Node Queue (Size ${nodeMessageCount})`}</button>
+          <input type="hidden" name="queueType" value={QueueTypes.NodeStorage} />
+          <div>Queue: {QueueTypes.NodeStorage}</div>
+          <div>Size: {nodeMessageCount}</div>
+          <button type="submit">Add Message</button>
         </Form>
-        <Form method="post" >
+        <Form method="post" className="processingQueue">
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-          <input type="hidden" name="queueType" value={QueueTypes.Python} />
-          <button type="submit">{`Add to Python Queue (Size ${pythonMessageCount})`}</button>
+          <input type="hidden" name="queueType" value={QueueTypes.NodeServiceBus} />
+          <div>Queue: {QueueTypes.NodeServiceBus}</div>
+          <div>Size: -</div>
+          <button type="submit">Add Message</button>
+        </Form>
+        <Form method="post" className="processingQueue">
+          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+          <input type="hidden" name="queueType" value={QueueTypes.PythonStorage} />
+          <div>Queue: {QueueTypes.PythonStorage}</div>
+          <div>Size: {pythonMessageCount}</div>
+          <button type="submit">Add Message</button>
         </Form>
       </div>
       <div className="columns">

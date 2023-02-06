@@ -41,6 +41,12 @@ button[type="submit"] {
     border-radius: 6px;
 }
 
+.processingQueue {
+    display: flex;
+    gap: 0.25em;
+    flex-direction: column;
+}
+
 .items {
     display: grid;
     grid-template-columns: repeat(3, minmax(max-content, 1fr));
