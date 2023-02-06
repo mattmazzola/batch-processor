@@ -4,6 +4,7 @@ import React, { createRef } from "react"
 import { secondsPerMinute } from "~/constants"
 import { db } from "~/services/db.server"
 import { nodeQueueClient, pythonQueueClient } from "~/services/queue.server"
+import { serviceBusQueueSender } from "~/services/serviceBusQueue.server"
 import indexStyles from "~/styles/index.css"
 
 export const links: LinksFunction = () => [
@@ -87,6 +88,12 @@ export const action = async ({ request }: DataFunctionArgs) => {
           })
 
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
+          break
+        }
+        case QueueTypes.NodeServiceBus: {
+          await serviceBusQueueSender.sendMessages({ body: JSON.stringify(messageJson) })
+
+          console.log(`Added message to ${queueType} queue!`)
           break
         }
         case QueueTypes.PythonStorage: {
