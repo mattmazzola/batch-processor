@@ -13,3 +13,10 @@ module storageQueues 'modules/storageQueues.bicep' = {
     uniqueRgString: uniqueRgString
   }
 }
+
+module serviceQueues 'modules/serviceQueues.bicep' = {
+  name: 'serviceQueuesModule'
+  params: {
+    uniqueRgString: uniqueRgString
+  }
+}
