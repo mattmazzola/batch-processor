@@ -27,10 +27,22 @@ if (messageResponse.receivedMessageItems.length === 0) {
     process.exit(0)
 }
 
+type MessageContent = {
+    source: string
+    datetime: string
+    input: {
+        numberValue: number
+        stringValue: string
+    }
+}
+
 const message = messageResponse.receivedMessageItems.at(0)!
-const messageText = message.messageText.endsWith('=')
+const messageJson = message.messageText.endsWith('=')
     ? new TextDecoder().decode(Uint8Array.from(Buffer.from(message.messageText, 'base64')))
     : message.messageText
+const messageObject: MessageContent = messageJson.startsWith('{')
+    ? JSON.parse(messageJson)
+    : messageJson
 
 const timeFormatter = new Intl.RelativeTimeFormat('en-US', {
     numeric: 'auto'
@@ -42,7 +54,12 @@ const expireDifference = Date.now() - message.expiresOn.getTime()
 const expireDifferenceMinutes = expireDifference / 1000 / 60
 
 console.log(`Message: ${message.messageId} received on: ${timeFormatter.format(-insertedDifferenceMinutes, 'minutes')}, expiresOn: ${timeFormatter.format(-expireDifferenceMinutes, 'minutes')}`)
-console.log(`Text: ${messageText}`)
+console.log(`
+Source: ${messageObject.source}
+Time: ${messageObject.datetime}
+Number: ${messageObject.input.numberValue}
+String: ${messageObject.input.stringValue}
+`.trim())
 
 console.log(`Dequeuing message: ${message.messageId}`)
 await queueClient.deleteMessage(message.messageId, message.popReceipt)
@@ -57,7 +74,8 @@ const total = values.reduce((sum, value) => sum + value, 0)
 
 const savedResult = await db.result.create({
     data: {
-        value: total
+        value: total,
+        message: `Number: ${messageObject.input.numberValue} String: ${messageObject.input.stringValue} from Node`
     }
 })
 

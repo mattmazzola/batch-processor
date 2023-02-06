@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 
 from azure.storage.queue import QueueClient
@@ -30,10 +31,16 @@ async def main() -> None:
     messages = queue_client.receive_messages()
 
     db: Prisma | None = None
+    number_value = 0
+    string_value = '?'
 
     for message in messages:
         print(f'Dequeueing message: {message.content}')
         queue_client.delete_message(message.id, message.pop_receipt)
+        if message.content is not None:
+            message_content_json = json.loads(message.content)
+            number_value = message_content_json['input']['numberValue']
+            string_value = message_content_json['input']['stringValue']
 
         db = Prisma()
         await db.connect()
@@ -47,7 +54,8 @@ async def main() -> None:
         total = sum(values)
 
         saved_result = await db.result.create(data={
-            'value': total
+            'value': total,
+            'message': f"Number: {number_value} String: {string_value} from Python"
         })
 
         print(f'Saved sum: {saved_result.value}')

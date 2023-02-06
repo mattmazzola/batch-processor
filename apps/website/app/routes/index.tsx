@@ -1,7 +1,7 @@
 import { DataFunctionArgs, LinksFunction } from "@remix-run/node"
 import { Form, useLoaderData } from "@remix-run/react"
 import React, { createRef } from "react"
-import { millisecondsPerMinute } from "~/constants"
+import { secondsPerMinute } from "~/constants"
 import { db } from "~/services/db.server"
 import { nodeQueueClient, pythonQueueClient } from "~/services/queue.server"
 import indexStyles from "~/styles/index.css"
@@ -38,6 +38,15 @@ enum QueueTypes {
   Python = 'Python',
 }
 
+type MessageContent = {
+  source: string
+  datetime: string
+  input: {
+    numberValue: number
+    stringValue: string
+  }
+}
+
 export const action = async ({ request }: DataFunctionArgs) => {
   const rawFormData = await request.formData()
   const formData = Object.fromEntries(rawFormData)
@@ -52,7 +61,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
       await db.item.create({
         data: {
-          userId: 'abc123',
+          userId: 'hardcoded-userid-for-testing',
           value
         }
       })
@@ -60,19 +69,27 @@ export const action = async ({ request }: DataFunctionArgs) => {
     }
     case FormSubmissionNames.ProcessValues: {
       const queueType = formData.queueType as QueueTypes
+      const messageJson: MessageContent = {
+        source: queueType,
+        datetime: new Date().toJSON(),
+        input: {
+          numberValue: 10,
+          stringValue: 'abc'
+        }
+      }
 
       switch (queueType) {
         case QueueTypes.Node: {
-          const addedMessage = await nodeQueueClient.sendMessage(`Message Text in ${queueType} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
-            messageTimeToLive: 1 * millisecondsPerMinute
+          const addedMessage = await nodeQueueClient.sendMessage(JSON.stringify(messageJson), {
+            messageTimeToLive: 10 * secondsPerMinute
           })
 
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
           break;
         }
         case QueueTypes.Python: {
-          const addedMessage = await pythonQueueClient.sendMessage(`Message Text in ${queueType} Queue from Batch-Processor Website at ${new Date().toJSON()}`, {
-            messageTimeToLive: 1 * millisecondsPerMinute
+          const addedMessage = await pythonQueueClient.sendMessage(JSON.stringify(messageJson), {
+            messageTimeToLive: 10 * secondsPerMinute
           })
 
           console.log(`Added message: ${addedMessage.messageId} to ${queueType} queue!`)
@@ -159,15 +176,15 @@ export default function Index() {
         <div>
           <h1>Results ({results.length}):</h1>
           <div className="items">
-            <div className="header">ID</div>
             <div className="header">Value</div>
+            <div className="header">Message</div>
             <div className="header">Created At</div>
             {results.length === 0
               ? <div className="empty">No Items</div>
               : results.map(result => {
                 return <React.Fragment key={result.id}>
-                  <div>{result.id}</div>
                   <div><b>{result.value}</b></div>
+                  <div>{result.message}</div>
                   <div>{dateFormatter.format(new Date(result.createdAt))}</div>
                 </React.Fragment>
               })}

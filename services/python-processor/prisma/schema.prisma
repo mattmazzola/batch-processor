@@ -22,4 +22,5 @@ model Result {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   value     Int
+  message   String?
 }
