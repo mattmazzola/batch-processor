@@ -6,7 +6,7 @@
 ## Docker setup
 
 ```powershell
-docker build -t batch-processor-node .
+docker build -t batch-processor-node-storage .
 ```
 
 ```powershell
@@ -24,8 +24,9 @@ $storageConnectionString = $(az storage account show-connection-string -g $share
 docker run -it `
     --rm `
     -e DATABASE_URL=$databaseUrl `
-    -d STORAGE_CONNECTION_STRING=$storageConnectionString `
-    processor-node
+    -e STORAGE_CONNECTION_STRING=$storageConnectionString `
+    -e STORAGE_QUEUE_NAME="node-processor-queue" `
+    batch-processor-node-storage
 ```
 
 ## Scaling
