@@ -21,6 +21,7 @@ declare global {
 // create a new connection to the DB with every change either.
 if (process.env.NODE_ENV === "production") {
     serviceBusClient = new ServiceBusClient(process.env.SERVICE_BUS_NAMESPACE_CONNECTION_STRING)
+    serviceBusQueueSender = serviceBusClient.createSender(process.env.SERVICE_BUS_NODE_QUEUE_NAME)
 } else {
     if (!global.__serviceBusClient) {
         global.__serviceBusClient = new ServiceBusClient(process.env.SERVICE_BUS_NAMESPACE_CONNECTION_STRING)
