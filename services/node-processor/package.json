@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "predev": "npm run build",
-    "dev": "node .",
+    "dev": "node -r dotenv-flow/config .",
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

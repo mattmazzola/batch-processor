@@ -1,8 +1,5 @@
 import { QueueServiceClient } from "@azure/storage-queue"
 import { PrismaClient } from "@prisma/client"
-import dotenv from 'dotenv-flow'
-
-dotenv.config()
 
 console.log(`Validate environment variables...`)
 if (typeof process.env.DATABASE_URL !== 'string') {
