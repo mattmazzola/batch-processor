@@ -4,7 +4,7 @@ import React, { createRef } from "react"
 import { secondsPerMinute } from "~/constants"
 import { db } from "~/services/db.server"
 import { nodeQueueClient, pythonQueueClient } from "~/services/queue.server"
-import { serviceBusQueueSender } from "~/services/serviceBusQueue.server"
+import { serviceBusQueueReceiver, serviceBusQueueSender } from "~/services/serviceBusQueue.server"
 import indexStyles from "~/styles/index.css"
 
 export const links: LinksFunction = () => [
@@ -21,11 +21,15 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
   const pythonMessageCount = pythonMessagesResponse.peekedMessageItems.length
 
+  const nodeSbMessages = await serviceBusQueueReceiver.peekMessages(32, {
+  })
+
   return {
     items,
     results,
     nodeMessageCount,
     pythonMessageCount,
+    nodeServiceBusMessageCount: nodeSbMessages.length
   }
 }
 
@@ -117,7 +121,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
 }
 
 export default function Index() {
-  const { items, results, nodeMessageCount, pythonMessageCount } = useLoaderData<typeof loader>()
+  const { items, results, nodeMessageCount, pythonMessageCount, nodeServiceBusMessageCount } = useLoaderData<typeof loader>()
   const valueInputRef = createRef<HTMLInputElement>()
   const submitButtonRef = createRef<HTMLButtonElement>()
   const setRandom = () => {
@@ -165,7 +169,7 @@ export default function Index() {
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.NodeServiceBus} />
           <div>Queue: {QueueTypes.NodeServiceBus}</div>
-          <div>Size: -</div>
+          <div>Size: {nodeServiceBusMessageCount}</div>
           <button type="submit">Add Message</button>
         </Form>
         <Form method="post" className="processingQueue">
