@@ -15,11 +15,16 @@ param pythonQueueName string
 param storageConnectionString string
 
 @secure()
+param serviceBusConnectionString string
+param serviceBusQueueName string
+
+@secure()
 param databaseConnectionString string
 
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var storageConnectionStringSecretName = 'queue-connection-string'
+var serviceBusConnectionStringSecretName = 'service-bus-queue-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -52,6 +57,10 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           name: storageConnectionStringSecretName
           value: storageConnectionString
         }
+        {
+          name: serviceBusConnectionStringSecretName
+          value: serviceBusConnectionString
+        }
       ]
     }
     template: {
@@ -80,6 +89,14 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
             {
               name: 'STORAGE_PYTHON_QUEUE_NAME'
               value: pythonQueueName
+            }
+            {
+              name: 'SERVICE_BUS_NAMESPACE_CONNECTION_STRING'
+              secretRef: serviceBusConnectionStringSecretName
+            }
+            {
+              name: 'SERVICE_BUS_NODE_QUEUE_NAME'
+              value: serviceBusQueueName
             }
           ]
         }

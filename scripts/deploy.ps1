@@ -6,8 +6,7 @@ $batchProcessorResourceGroupName = "batch-processor"
 echo "PScriptRoot: $PScriptRoot"
 $repoRoot = If ('' -eq $PScriptRoot) {
   "$PSScriptRoot/.."
-}
-else {
+} Else {
   "."
 }
 
@@ -26,6 +25,8 @@ Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $sharedResourceNames.storageAccount --query "connectionString" -o tsv)
 $storageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[].name" -o tsv)
+$serviceBusNamespaceConnectionString = $(az servicebus namespace authorization-rule keys list -g $sharedResourceGroupName --namespace-name $sharedResourceNames.servicebus -n 'RootManageSharedAccessKey' --query 'primaryConnectionString' -o tsv)
+$serviceBusQueueName = $(az servicebus queue list -g $sharedResourceGroupName --namespace-name $sharedResourceNames.servicebus --query '[0].name' -o tsv)
 
 Write-Step "Fetch params from Azure"
 $sharedResourceVars = Get-SharedResourceDeploymentVars $sharedResourceGroupName $sharedRgString
@@ -45,18 +46,20 @@ $clientImageTag = $(Get-Date -Format "yyyyMMddhhmm")
 $clientImageName = "$($sharedResourceVars.registryUrl)/${clientContainerName}:${clientImageTag}"
 
 $data = [ordered]@{
-  "databaseConnectionString"   = "$($databaseConnectionString.Substring(0, 15))..."
-  "storageConnectionString"    = "$($storageConnectionString.Substring(0, 15))..."
-  "storageQueueName"           = $storageQueueName
+  "databaseConnectionString"            = "$($databaseConnectionString.Substring(0, 15))..."
+  "storageConnectionString"             = "$($storageConnectionString.Substring(0, 15))..."
+  "storageQueueName"                    = $storageQueueName
+  "serviceBusNamespaceConnectionString" = "$($serviceBusNamespaceConnectionString.Substring(0, 15))..."
+  "serviceBusQueueName"                 = $serviceBusQueueName
 
-  "nodeProcessorImageName"     = $nodeProcessorImageName
-  "pythonProcessorImageName"   = $pythonProcessorImageName
-  "clientImageName"            = $clientImageName
+  "nodeProcessorImageName"              = $nodeProcessorImageName
+  "pythonProcessorImageName"            = $pythonProcessorImageName
+  "clientImageName"                     = $clientImageName
 
-  "containerAppsEnvResourceId" = $($sharedResourceVars.containerAppsEnvResourceId)
-  "registryUrl"                = $($sharedResourceVars.registryUrl)
-  "registryUsername"           = $($sharedResourceVars.registryUsername)
-  "registryPassword"           = "$($($sharedResourceVars.registryPassword).Substring(0, 5))..."
+  "containerAppsEnvResourceId"          = $($sharedResourceVars.containerAppsEnvResourceId)
+  "registryUrl"                         = $($sharedResourceVars.registryUrl)
+  "registryUsername"                    = $($sharedResourceVars.registryUsername)
+  "registryPassword"                    = "$($($sharedResourceVars.registryPassword).Substring(0, 5))..."
 }
 
 Write-Hash "Data" $data
@@ -143,6 +146,8 @@ $clientFqdn = $(az deployment group create `
     pythonQueueName=$pythonQueueName `
     storageConnectionString=$storageConnectionString `
     databaseConnectionString=$databaseConnectionString `
+    serviceBusNamespaceConnectionString=$serviceBusNamespaceConnectionString `
+    serviceBusQueueName=$serviceBusQueueName `
     --query "properties.outputs.fqdn.value" `
     -o tsv)
 
