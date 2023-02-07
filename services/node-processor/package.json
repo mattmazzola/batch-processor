@@ -1,5 +1,5 @@
 {
-  "name": "processor",
+  "name": "node-processor",
   "version": "1.0.0",
   "description": "Example processer which is scaled by KEDA",
   "main": "build/index.mjs",
