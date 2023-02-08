@@ -88,6 +88,7 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           {
             name: 'storage-queue-message'
             custom: {
+              // https://keda.sh/docs/2.9/scalers/azure-storage-queue/
               type: 'azure-queue'
               metadata: {
                 queueName: queueName

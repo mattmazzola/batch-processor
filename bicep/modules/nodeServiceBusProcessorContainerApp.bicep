@@ -1,4 +1,4 @@
-param name string = '${resourceGroup().name}-node'
+param name string = '${resourceGroup().name}-sb-node'
 param location string = resourceGroup().location
 
 param managedEnvironmentResourceId string
@@ -10,18 +10,18 @@ param registryUsername string
 param registryPassword string
 
 param queueName string
-param queueLength int = 1
+param messageCount int = 1
 param activationQueueLength int = 0
-param storageAccountName string
+param serviceBusNamespaceName string
 @secure()
-param storageConnectionString string
+param serviceBusConnectionString string
 
 @secure()
 param databaseConnectionString string
 
 var registryPassworldSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
-var storageConnectionStringSecretName = 'queue-connection-string'
+var serviceBusConnectionStringSecretName = 'service-bus-connection-string'
 
 resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
   name: name
@@ -47,8 +47,8 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
           value: databaseConnectionString
         }
         {
-          name: storageConnectionStringSecretName
-          value: storageConnectionString
+          name: serviceBusConnectionStringSecretName
+          value: serviceBusConnectionString
         }
       ]
     }
@@ -71,11 +71,11 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
               secretRef: databaseUrlSecretName
             }
             {
-              name: 'STORAGE_CONNECTION_STRING'
-              secretRef: storageConnectionStringSecretName
+              name: 'SERVICE_BUS_NAMESPACE_CONNECTION_STRING'
+              secretRef: serviceBusConnectionStringSecretName
             }
             {
-              name: 'STORAGE_QUEUE_NAME'
+              name: 'SERVICE_BUS_NODE_QUEUE_NAME'
               value: queueName
             }
           ]
@@ -86,20 +86,21 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
         maxReplicas: 5
         rules: [
           {
-            name: 'storage-queue-message'
+            name: 'service-bus-queue-message'
             custom: {
-              type: 'azure-queue'
+              // https://keda.sh/docs/2.9/scalers/azure-service-bus/
+              type: 'azure-servicebus'
               metadata: {
                 queueName: queueName
-                queueLength: string(queueLength)
-                activationQueueLength: string(activationQueueLength)
-                connectionFromEnv: 'STORAGE_CONNECTION_STRING'
-                accountName: storageAccountName
+                messageCount: string(messageCount)
+                activationMessageCount: string(activationQueueLength)
+                connectionFromEnv: 'SERVICE_BUS_NAMESPACE_CONNECTION_STRING'
+                namespace: serviceBusNamespaceName
                 cloud: 'AzurePublicCloud'
               }
               auth: [
                 {
-                  secretRef: storageConnectionStringSecretName
+                  secretRef: serviceBusConnectionStringSecretName
                   triggerParameter: 'connnection'
                 }
               ]
