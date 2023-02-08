@@ -72,7 +72,7 @@ const total = values.reduce((sum, value) => sum + value, 0)
 const savedResult = await db.result.create({
     data: {
         value: total,
-        message: `Number: ${messageObject.input.numberValue} String: ${messageObject.input.stringValue} from Node`
+        message: `Number: ${messageObject.input.numberValue} String: ${messageObject.input.stringValue} from Node Storage Queue Processor`
     }
 })
 

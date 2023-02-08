@@ -55,7 +55,7 @@ async def main() -> None:
 
         saved_result = await db.result.create(data={
             'value': total,
-            'message': f"Number: {number_value} String: {string_value} from Python"
+            'message': f"Number: {number_value} String: {string_value} from Python Storage Queue Processor"
         })
 
         print(f'Saved sum: {saved_result.value}')
