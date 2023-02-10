@@ -6,6 +6,7 @@ import { db } from "~/services/db.server"
 import { nodeQueueClient, pythonQueueClient } from "~/services/queue.server"
 import { serviceBusQueueReceiver, serviceBusQueueSender } from "~/services/serviceBusQueue.server"
 import indexStyles from "~/styles/index.css"
+import { getRandom } from "~/utilities"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: indexStyles },
@@ -80,7 +81,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
         source: queueType,
         datetime: new Date().toJSON(),
         input: {
-          numberValue: 10,
+          numberValue: getRandom(1000),
           stringValue: 'abc'
         }
       }
