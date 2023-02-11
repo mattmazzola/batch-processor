@@ -17,13 +17,8 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   try {
     const items = await db.item.findMany()
     const results = await db.result.findMany()
-
     const nodeMessagesResponse = await nodeQueueClient.peekMessages({ numberOfMessages: 32 })
-    const nodeMessageCount = nodeMessagesResponse.peekedMessageItems.length
-
     const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
-    const pythonMessageCount = pythonMessagesResponse.peekedMessageItems.length
-
     const nodeSbMessages = await serviceBusQueueReceiver.peekMessages(32, {
       fromSequenceNumber: Long.MIN_VALUE
     })
@@ -31,9 +26,9 @@ export const loader = async ({ request }: DataFunctionArgs) => {
     return {
       items,
       results,
-      nodeMessageCount,
-      pythonMessageCount,
-      nodeServiceBusMessageCount: nodeSbMessages.length
+      pendingNodeStorageMessages: nodeMessagesResponse.peekedMessageItems,
+      pendingNodeServiceBusMessages: nodeSbMessages,
+      pendingPythonStorageMessages: pythonMessagesResponse.peekedMessageItems,
     }
   }
   catch (e) {
@@ -121,7 +116,9 @@ export const action = async ({ request }: DataFunctionArgs) => {
         }
       }
 
-      break
+      return {
+        messageJson
+      }
     }
   }
 
@@ -155,7 +152,13 @@ export const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
 }
 
 export default function Index() {
-  const { items, results, nodeMessageCount, pythonMessageCount, nodeServiceBusMessageCount } = useLoaderData<typeof loader>()
+  const {
+    items,
+    results,
+    pendingNodeStorageMessages,
+    pendingNodeServiceBusMessages,
+    pendingPythonStorageMessages
+  } = useLoaderData<typeof loader>()
   const valueInputRef = createRef<HTMLInputElement>()
   const submitButtonRef = createRef<HTMLButtonElement>()
   const setRandom = () => {
@@ -196,22 +199,34 @@ export default function Index() {
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.NodeStorage} />
           <div>Queue: {QueueTypes.NodeStorage}</div>
-          <div>Size: {nodeMessageCount}</div>
+          <div>Size: {pendingNodeStorageMessages.length}</div>
           <button type="submit">Add Message</button>
+          {pendingNodeStorageMessages.map(m => {
+            const messageJson = JSON.parse(m.messageText)
+            return <div>Message Value: {messageJson.input.numberValue}</div>
+          })}
         </Form>
         <Form method="post" className="processingQueue">
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.NodeServiceBus} />
           <div>Queue: {QueueTypes.NodeServiceBus}</div>
-          <div>Size: {nodeServiceBusMessageCount}</div>
+          <div>Size: {pendingNodeServiceBusMessages.length}</div>
           <button type="submit">Add Message</button>
+          {pendingNodeServiceBusMessages.map(m => {
+            const messageJson = JSON.parse(m.body)
+            return <div>Message Value: {messageJson.input.numberValue}</div>
+          })}
         </Form>
         <Form method="post" className="processingQueue">
           <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
           <input type="hidden" name="queueType" value={QueueTypes.PythonStorage} />
           <div>Queue: {QueueTypes.PythonStorage}</div>
-          <div>Size: {pythonMessageCount}</div>
+          <div>Size: {pendingPythonStorageMessages.length}</div>
           <button type="submit">Add Message</button>
+          {pendingPythonStorageMessages.map(m => {
+            const messageJson = JSON.parse(m.messageText)
+            return <div>Message Value: {messageJson.input.numberValue}</div>
+          })}
         </Form>
       </div>
       <div className="columns">
