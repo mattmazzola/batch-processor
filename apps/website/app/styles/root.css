@@ -7,10 +7,12 @@ body {
     --font-serif: 'Times New Roman', Times, serif;
     --font-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    --color-white-softer: hsla(0deg 0% 85% / 1.0);
-    --color-white-soft: hsla(0deg 0% 90% / 1.0);
-
+    --color-white-softer: hsla(0deg 0% 90% / 1.0);
+    --color-white-soft: hsla(0deg 0% 95% / 1.0);
+    --color-white: hsla(0deg 0% 100% / 1.0);
     --color-black-soft: hsl(0deg 0% 20% / 1.0);
+    --color-green-lighter: hsl(126 22% 80% / 1.0);
+    --color-green-light: hsl(126 22% 75% / 1.0);
 }
 
 body {
@@ -27,12 +29,36 @@ body {
     color: var(--color-black-soft);
 }
 
+header p {
+    margin: 0;
+}
+
 header, footer {
     padding: 2em;
     background-color: var(--color-white-softer);
+    background-color: var(--color-green-light);
+    border-bottom: 1px solid var(--color-black-soft);
+}
+
+
+header {
+    border-bottom: 1px solid var(--color-black-soft);
+}
+
+
+footer {
+    border-top: 1px solid var(--color-black-soft);
 }
 
 main {
     flex: 1;
     padding: 2em
+}
+
+section + section {
+    margin-top: 1em;
+}
+
+ol, ul {
+    margin: 0;
 }

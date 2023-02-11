@@ -181,90 +181,94 @@ export default function Index() {
 
   return (
     <>
-      <h1>Add Item:</h1>
-      <Form method="post" className="addValueForm">
-        <input type="hidden" name="formName" value={FormSubmissionNames.AddValue} />
-        <div className="row">
-          <label htmlFor="value">Value: </label>
-          <input ref={valueInputRef} type="number" id="value" name="value" step={1} required defaultValue={0} />
+      <section>
+        <h1>Add Item:</h1>
+        <Form method="post" className="addValueForm">
+          <input type="hidden" name="formName" value={FormSubmissionNames.AddValue} />
+          <div className="row">
+            <label htmlFor="value">Value: </label>
+            <input ref={valueInputRef} type="number" id="value" name="value" step={1} required defaultValue={0} />
+          </div>
+          <div className="row">
+            <button ref={submitButtonRef} type="submit">Add Value</button>
+            <button type="button" onClick={setRandom}>Add Random value</button>
+          </div>
+        </Form>
+      </section>
+      <section>
+        <h1>Process Items:</h1>
+        <div className="processingForm">
+          <Form method="post" className="processingQueue">
+            <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+            <input type="hidden" name="queueType" value={QueueTypes.NodeStorage} />
+            <div>Queue: {QueueTypes.NodeStorage}</div>
+            <div>Size: {pendingNodeStorageMessages.length}</div>
+            <button type="submit">Add Message</button>
+            {pendingNodeStorageMessages.map(m => {
+              const messageJson = JSON.parse(m.messageText)
+              return <div>Message Value: {messageJson.input.numberValue}</div>
+            })}
+          </Form>
+          <Form method="post" className="processingQueue">
+            <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+            <input type="hidden" name="queueType" value={QueueTypes.NodeServiceBus} />
+            <div>Queue: {QueueTypes.NodeServiceBus}</div>
+            <div>Size: {pendingNodeServiceBusMessages.length}</div>
+            <button type="submit">Add Message</button>
+            {pendingNodeServiceBusMessages.map(m => {
+              const messageJson = JSON.parse(m.body)
+              return <div>Message Value: {messageJson.input.numberValue}</div>
+            })}
+          </Form>
+          <Form method="post" className="processingQueue">
+            <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
+            <input type="hidden" name="queueType" value={QueueTypes.PythonStorage} />
+            <div>Queue: {QueueTypes.PythonStorage}</div>
+            <div>Size: {pendingPythonStorageMessages.length}</div>
+            <button type="submit">Add Message</button>
+            {pendingPythonStorageMessages.map(m => {
+              const messageJson = JSON.parse(m.messageText)
+              return <div>Message Value: {messageJson.input.numberValue}</div>
+            })}
+          </Form>
         </div>
-        <div className="row">
-          <button ref={submitButtonRef} type="submit">Add Value</button>
-          <button type="button" onClick={setRandom}>Add Random value</button>
-        </div>
-      </Form>
-      <h1>Process Items:</h1>
-      <div className="processingForm">
-        <Form method="post" className="processingQueue">
-          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-          <input type="hidden" name="queueType" value={QueueTypes.NodeStorage} />
-          <div>Queue: {QueueTypes.NodeStorage}</div>
-          <div>Size: {pendingNodeStorageMessages.length}</div>
-          <button type="submit">Add Message</button>
-          {pendingNodeStorageMessages.map(m => {
-            const messageJson = JSON.parse(m.messageText)
-            return <div>Message Value: {messageJson.input.numberValue}</div>
-          })}
-        </Form>
-        <Form method="post" className="processingQueue">
-          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-          <input type="hidden" name="queueType" value={QueueTypes.NodeServiceBus} />
-          <div>Queue: {QueueTypes.NodeServiceBus}</div>
-          <div>Size: {pendingNodeServiceBusMessages.length}</div>
-          <button type="submit">Add Message</button>
-          {pendingNodeServiceBusMessages.map(m => {
-            const messageJson = JSON.parse(m.body)
-            return <div>Message Value: {messageJson.input.numberValue}</div>
-          })}
-        </Form>
-        <Form method="post" className="processingQueue">
-          <input type="hidden" name="formName" value={FormSubmissionNames.ProcessValues} />
-          <input type="hidden" name="queueType" value={QueueTypes.PythonStorage} />
-          <div>Queue: {QueueTypes.PythonStorage}</div>
-          <div>Size: {pendingPythonStorageMessages.length}</div>
-          <button type="submit">Add Message</button>
-          {pendingPythonStorageMessages.map(m => {
-            const messageJson = JSON.parse(m.messageText)
-            return <div>Message Value: {messageJson.input.numberValue}</div>
-          })}
-        </Form>
-      </div>
-      <div className="columns">
-        <div>
-          <h1>Items ({items.length}):</h1>
-          <div className="items">
-            <div className="header">ID</div>
-            <div className="header">Value</div>
-            <div className="header">Created At</div>
-            {items.length === 0
-              ? <div className="empty">No Items</div>
-              : items.map(item => {
-                return <React.Fragment key={item.id}>
-                  <div>{item.id}</div>
-                  <div><b>{item.value}</b></div>
-                  <div>{dateFormatter.format(new Date(item.createdAt))}</div>
-                </React.Fragment>
-              })}
+      </section>
+      <section>
+        <div className="columns">
+          <div>
+            <h1>Items ({items.length}):</h1>
+            <div className="items">
+              <div className="header">Value</div>
+              <div className="header">Created At</div>
+              {items.length === 0
+                ? <div className="empty">No Items</div>
+                : items.map(item => {
+                  return <React.Fragment key={item.id}>
+                    <div><b>{item.value}</b></div>
+                    <div>{dateFormatter.format(new Date(item.createdAt))}</div>
+                  </React.Fragment>
+                })}
+            </div>
+          </div>
+          <div>
+            <h1>Results ({results.length}):</h1>
+            <div className="results">
+              <div className="header">Value</div>
+              <div className="header">Message</div>
+              <div className="header">Created At</div>
+              {results.length === 0
+                ? <div className="empty">No Items</div>
+                : results.map(result => {
+                  return <React.Fragment key={result.id}>
+                    <div><b>{result.value}</b></div>
+                    <div>{result.message}</div>
+                    <div>{dateFormatter.format(new Date(result.createdAt))}</div>
+                  </React.Fragment>
+                })}
+            </div>
           </div>
         </div>
-        <div>
-          <h1>Results ({results.length}):</h1>
-          <div className="items">
-            <div className="header">Value</div>
-            <div className="header">Message</div>
-            <div className="header">Created At</div>
-            {results.length === 0
-              ? <div className="empty">No Items</div>
-              : results.map(result => {
-                return <React.Fragment key={result.id}>
-                  <div><b>{result.value}</b></div>
-                  <div>{result.message}</div>
-                  <div>{dateFormatter.format(new Date(result.createdAt))}</div>
-                </React.Fragment>
-              })}
-          </div>
-        </div>
-      </div>
+      </section>
     </>
   )
 }
