@@ -1,5 +1,6 @@
-import { DataFunctionArgs, LinksFunction } from "@remix-run/node"
-import { Form, useLoaderData } from "@remix-run/react"
+import { DataFunctionArgs, ErrorBoundaryComponent, LinksFunction } from "@remix-run/node"
+import { Form, useCatch, useLoaderData } from "@remix-run/react"
+import Long from "long"
 import React, { createRef } from "react"
 import { secondsPerMinute } from "~/constants"
 import { db } from "~/services/db.server"
@@ -13,24 +14,30 @@ export const links: LinksFunction = () => [
 ]
 
 export const loader = async ({ request }: DataFunctionArgs) => {
-  const items = await db.item.findMany()
-  const results = await db.result.findMany()
+  try {
+    const items = await db.item.findMany()
+    const results = await db.result.findMany()
 
-  const nodeMessagesResponse = await nodeQueueClient.peekMessages({ numberOfMessages: 32 })
-  const nodeMessageCount = nodeMessagesResponse.peekedMessageItems.length
+    const nodeMessagesResponse = await nodeQueueClient.peekMessages({ numberOfMessages: 32 })
+    const nodeMessageCount = nodeMessagesResponse.peekedMessageItems.length
 
-  const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
-  const pythonMessageCount = pythonMessagesResponse.peekedMessageItems.length
+    const pythonMessagesResponse = await pythonQueueClient.peekMessages({ numberOfMessages: 32 })
+    const pythonMessageCount = pythonMessagesResponse.peekedMessageItems.length
 
-  const nodeSbMessages = await serviceBusQueueReceiver.peekMessages(32, {
-  })
+    const nodeSbMessages = await serviceBusQueueReceiver.peekMessages(32, {
+      fromSequenceNumber: Long.MIN_VALUE
+    })
 
-  return {
-    items,
-    results,
-    nodeMessageCount,
-    pythonMessageCount,
-    nodeServiceBusMessageCount: nodeSbMessages.length
+    return {
+      items,
+      results,
+      nodeMessageCount,
+      pythonMessageCount,
+      nodeServiceBusMessageCount: nodeSbMessages.length
+    }
+  }
+  catch (e) {
+    throw new Error(`Error attempting to load items. It is likely that the database was asleep. This is likely the first request to wake it up. Please try again in a few minutes.\n {e}`)
   }
 }
 
@@ -119,6 +126,32 @@ export const action = async ({ request }: DataFunctionArgs) => {
   }
 
   return null
+}
+
+export function CatchBoundary() {
+  const caughtResponse = useCatch()
+
+  return (
+    <div>
+      <h1>Error:</h1>
+      <p>Status: {caughtResponse.status}</p>
+      <pre>
+        <code>{JSON.stringify(caughtResponse.data, null, 2)}</code>
+      </pre>
+    </div>
+  )
+}
+
+export const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
+  console.log({ error })
+  return (
+    <div>
+      <h1>Error</h1>
+      <p>{error.message}</p>
+      <p>The stack trace is:</p>
+      <pre>{error.stack}</pre>
+    </div>
+  )
 }
 
 export default function Index() {
