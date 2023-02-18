@@ -32,7 +32,7 @@ export const loader = async ({ request }: DataFunctionArgs) => {
     }
   }
   catch (e) {
-    throw new Error(`Error attempting to load items. It is likely that the database was asleep. This is likely the first request to wake it up. Please try again in a few minutes.\n {e}`)
+    throw new Error(`Error attempting to load items. It is likely that the database was asleep. This is likely the first request to wake it up. Please try again in a few minutes.\n ${e}`)
   }
 }
 
