@@ -7,7 +7,7 @@ RUN dotnet restore
 
 # Build and publish a release
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out /p:UseAppHost=false
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:7.0
