@@ -20,7 +20,7 @@ async def main() -> None:
         raise Exception(f'You attempted to run the container without providing the STORAGE_CONNECTION_STRING')
 
     STORAGE_QUEUE_NAME = os.getenv("STORAGE_QUEUE_NAME")
-    if STORAGE_CONNECTION_STRING is None:
+    if STORAGE_QUEUE_NAME is None:
         raise Exception(f'You attempted to run the container without providing the STORAGE_QUEUE_NAME')
 
     assert STORAGE_QUEUE_NAME is not None
