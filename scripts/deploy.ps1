@@ -34,13 +34,14 @@ $envFilePath = $(Resolve-Path "$repoRoot/scripts/.env").Path
 
 Write-Step "Get ENV Vars from $envFilePath"
 $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variableName 'DATABASE_URL'
+
+Write-Step "Fetch params from Azure"
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $($sharedResourceNames.storageAccount) --query "connectionString" -o tsv)
 $nodeStorageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[0].name" -o tsv)
 $pythonStorageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[1].name" -o tsv)
 $serviceBusNamespaceConnectionString = $(az servicebus namespace authorization-rule keys list -g $sharedResourceGroupName --namespace-name $($sharedResourceNames.serviceBus) --name 'RootManageSharedAccessKey' --query 'primaryConnectionString' -o tsv)
 $serviceBusQueueName = $(az servicebus queue list -g $sharedResourceGroupName --namespace-name $($sharedResourceNames.serviceBus) --query '[0].name' -o tsv)
 
-Write-Step "Fetch params from Azure"
 $sharedResourceVars = Get-SharedResourceDeploymentVars $sharedResourceGroupName $sharedRgString
 
 $nodeProcessorContainerName = $($batchProcessorResourceNames.containerAppNodeStorageQueue)
