@@ -19,7 +19,7 @@ param serviceBusConnectionString string
 @secure()
 param databaseConnectionString string
 
-var registryPassworldSecretName = 'container-registry-password'
+var registryPasswordSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var serviceBusConnectionStringSecretName = 'service-bus-connection-string'
 
@@ -34,12 +34,12 @@ resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
         {
           server: registryUrl
           username: registryUsername
-          passwordSecretRef: registryPassworldSecretName
+          passwordSecretRef: registryPasswordSecretName
         }
       ]
       secrets: [
         {
-          name: registryPassworldSecretName
+          name: registryPasswordSecretName
           value: registryPassword
         }
         {
