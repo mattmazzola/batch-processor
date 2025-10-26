@@ -22,3 +22,12 @@ az acr login --name sharedklgoyiacr
 ```pwsh
 ./scripts/deploy.ps1 -WhatIf:$false
 ```
+
+# Building Images
+
+```bash
+cd services/dotnet-processor && docker build -t batch-processor-dotnet . && cd -
+cd services/node-processor && docker build -t batch-processor-node . && cd -
+cd services/node-sb-processor && docker build -t batch-processor-node-sb . && cd -
+cd services/python-processor && docker build -t batch-processor-python . && cd -
+```
