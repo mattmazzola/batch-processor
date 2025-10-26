@@ -1,4 +1,4 @@
-FROM python:3.11-buster as base
+FROM python:3.11-buster AS base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
@@ -18,7 +18,7 @@ ENV PATH="$POETRY_HOME/bin:$PATH"
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-FROM base as app
+FROM base AS app
 
 WORKDIR /myapp
 
