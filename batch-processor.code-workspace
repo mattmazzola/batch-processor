@@ -8,7 +8,7 @@
         }
     ],
     "settings": {
-		"powershell.cwd": "/workspace/dummyOne/batch-processor",
+        "powershell.cwd": "/workspace/dummyOne/batch-processor",
         "python.analysis.typeCheckingMode": "basic"
     },
 }
