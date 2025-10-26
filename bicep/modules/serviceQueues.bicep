@@ -6,13 +6,13 @@ param uniqueRgString string
 @maxLength(50)
 param serviceBusName string = '${resourceGroup().name}-${uniqueRgString}-servicebus'
 
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' existing = {
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2025-05-01-preview' existing = {
   name: serviceBusName
 }
 
 param nodeQueueName string = 'node-sb-processor-queue'
 
-resource nodeQueue 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-preview' = {
+resource nodeQueue 'Microsoft.ServiceBus/namespaces/queues@2025-05-01-preview' = {
   parent: serviceBusNamespace
   name: nodeQueueName
   properties: {

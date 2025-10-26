@@ -1,17 +1,35 @@
 Param([switch]$WhatIf = $True)
 
-echo "PScriptRoot: $PScriptRoot"
-$repoRoot = If ('' -eq $PScriptRoot) {
-  "$PSScriptRoot/.."
+$scriptPath = $MyInvocation.MyCommand.Path
+$scriptDir = Split-Path $scriptPath
+
+# Find repo root by searching upward for README.md
+$currentDir = $scriptDir
+$repoRoot = $null
+while ($currentDir -and -not $repoRoot) {
+  if (Test-Path (Join-Path $currentDir "README.md")) {
+    $repoRoot = $currentDir
+  }
+  else {
+    $currentDir = Split-Path $currentDir
+  }
 }
-Else {
-  "."
+if (-not $repoRoot) {
+  throw "Could not find repo root (no README.md found in parent directories)."
 }
 
+echo "Script Path: $scriptPath"
+echo "Script Dir: $scriptDir"
 echo "Repo Root: $repoRoot"
 
-Import-Module "C:/repos/shared-resources/pipelines/scripts/common.psm1" -Force
-Import-Module "$repoRoot/scripts/common.psm1" -Force
+$sharedModulePath = Resolve-Path "$repoRoot/../shared-resources/pipelines/scripts/common.psm1"
+$localModulePath = Resolve-Path "$repoRoot/scripts/common.psm1"
+
+echo "Shared Module Path: $sharedModulePath"
+echo "Local Module Path: $localModulePath"
+
+Import-Module $sharedModulePath -Force
+Import-Module $localModulePath -Force
 
 $inputs = @{
   "WhatIf" = $WhatIf
@@ -37,8 +55,8 @@ $databaseConnectionString = Get-EnvVarFromFile -envFilePath $envFilePath -variab
 
 Write-Step "Fetch params from Azure"
 $storageConnectionString = $(az storage account show-connection-string -g $sharedResourceGroupName -n $($sharedResourceNames.storageAccount) --query "connectionString" -o tsv)
-$nodeStorageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[0].name" -o tsv)
-$pythonStorageQueueName = $(az storage queue list --connection-string $storageConnectionString --query "[1].name" -o tsv)
+$nodeStorageQueueName = "node-processor-queue"
+$pythonStorageQueueName = "python-processor-queue"
 $serviceBusNamespaceConnectionString = $(az servicebus namespace authorization-rule keys list -g $sharedResourceGroupName --namespace-name $($sharedResourceNames.serviceBus) --name 'RootManageSharedAccessKey' --query 'primaryConnectionString' -o tsv)
 $serviceBusQueueName = $(az servicebus queue list -g $sharedResourceGroupName --namespace-name $($sharedResourceNames.serviceBus) --query '[0].name' -o tsv)
 
@@ -87,28 +105,42 @@ $mainBicepFile = "$repoRoot/bicep/main.bicep"
 if ($WhatIf -eq $True) {
   az deployment group create `
     -g $sharedResourceGroupName `
+    -p nodeStorageQueueName=$nodeStorageQueueName `
+    pythonStorageQueueName=$pythonStorageQueueName `
     -f $mainBicepFile `
     --what-if
 }
 else {
   az deployment group create `
     -g $sharedResourceGroupName `
+    -p nodeStorageQueueName=$nodeStorageQueueName `
+    pythonStorageQueueName=$pythonStorageQueueName `
     -f $mainBicepFile `
     --query "properties.provisioningState" `
     -o tsv
 }
 
+Write-Step "Create Resource Group $batchProcessorResourceGroupName"
+az group create -l $resourceGroupLocation -g $batchProcessorResourceGroupName --query name -o tsv
+
 Write-Step "Provision $batchProcessorResourceGroupName Resources (What-If: $($WhatIf))"
 
-Write-Step "Build and Push $nodeProcessorImageName Image"
+Write-Step "Build and Push $nodeProcessorImageName Image (What-If: $($WhatIf))"
 docker build -t $nodeProcessorImageName "$repoRoot/services/node-processor"
 
 if ($WhatIf -eq $False) {
+  Write-Step "Push $nodeProcessorImageName Image (What-If: $($WhatIf))"
   docker push $nodeProcessorImageName
+}
+else {
+  Write-Step "Skipping Push $nodeProcessorImageName Image (What-If: $($WhatIf))"
 }
 
 # TODO: Investigate why using 'az acr build' does not work
 # az acr build -r $registryUrl -t $nodeProcessorImageName ./services/node-processor
+
+Write-Step "Get Top Image from $($sharedResourceVars.registryUrl) respository $nodeProcessorContainerName to Verify Push (What-If: $($WhatIf))"
+az acr repository show-tags --name $($sharedResourceVars.registryUrl)  --repository $nodeProcessorContainerName --orderby time_desc --top 1 -o tsv
 
 Write-Step "Deploy $nodeProcessorImageName Container App (What-If: $($WhatIf))"
 $nodeProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodeProcessorContainerApp.bicep"
@@ -147,14 +179,19 @@ else {
     -o tsv
 }
 
-Write-Step "Build and Push $nodeSbProcessorImageName Image"
+Write-Step "Build and Push $nodeSbProcessorImageName Image (What-If: $($WhatIf))"
 docker build -t $nodeSbProcessorImageName "$repoRoot/services/node-sb-processor"
 
 if ($WhatIf -eq $False) {
+  Write-Step "Push $nodeSbProcessorImageName Image (What-If: $($WhatIf))"
   docker push $nodeSbProcessorImageName
 }
+else {
+  Write-Step "Skipping Push $nodeSbProcessorImageName Image (What-If: $($WhatIf))"
+}
+
 # TODO: Investigate why using 'az acr build' does not work
-# az acr build -r $registryUrl -t $nodeProcessorImageName ./services/node-processor
+# az acr build -r $registryUrl -t $nodeSbProcessorImageName "$repoRoot/services/node-sb-processor"
 
 Write-Step "Deploy $nodeSbProcessorImageName Container App (What-If: $($WhatIf))"
 $nodeSbProcessorBicepContainerDeploymentFilePath = "$repoRoot/bicep/modules/nodeServiceBusProcessorContainerApp.bicep"
@@ -197,8 +234,13 @@ Write-Step "Build and Push $pythonProcessorImageName Image (What-If: $($WhatIf))
 docker build -t $pythonProcessorImageName "$repoRoot/services/python-processor"
 
 if ($WhatIf -eq $False) {
+  Write-Step "Push $pythonProcessorImageName Image (What-If: $($WhatIf))"
   docker push $pythonProcessorImageName
 }
+else {
+  Write-Step "Skipping Push $pythonProcessorImageName Image (What-If: $($WhatIf))"
+}
+
 # TODO: Investigate why using 'az acr build' does not work
 # az acr build -r $registryUrl -t $pythonProcessorImageName ./services/python-processor
 
@@ -241,7 +283,14 @@ else {
 
 Write-Step "Build and Push $clientImageName Image (What-If: $($WhatIf))"
 docker build -t $clientImageName "$repoRoot/apps/website"
-docker push $clientImageName
+
+if ($WhatIf -eq $False) {
+  Write-Step "Push $clientImageName Image (What-If: $($WhatIf))"
+  docker push $clientImageName
+}
+else {
+  Write-Step "Skipping Push $clientImageName Image (What-If: $($WhatIf))"
+}
 
 # az acr build -r $registryUrl -t $clientImageName "$repoRoot/apps/website"
 
@@ -287,5 +336,4 @@ else {
 
   $clientUrl = "https://$clientFqdn"
   Write-Output $clientUrl
-
 }

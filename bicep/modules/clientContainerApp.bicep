@@ -26,7 +26,7 @@ var databaseUrlSecretName = 'db-url'
 var storageConnectionStringSecretName = 'queue-connection-string'
 var serviceBusConnectionStringSecretName = 'service-bus-queue-connection-string'
 
-resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: name
   location: location
   properties: {

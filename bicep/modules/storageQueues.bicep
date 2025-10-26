@@ -6,25 +6,25 @@ param uniqueRgString string
 @maxLength(24)
 param name string = '${resourceGroup().name}${uniqueRgString}storage'
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' existing = {
   name: name
 }
 
-resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2022-05-01' existing = {
+resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2025-01-01' existing = {
   parent: storageAccount
   name: 'default'
 }
 
-param nodeQueueName string = 'node-processor-queue'
+param nodeQueueName string
 
-resource nodeProcessorQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = {
+resource nodeProcessorQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-01-01' = {
   parent: queueService
   name: nodeQueueName
 }
 
-param pythonQueueName string = 'python-processor-queue'
+param pythonQueueName string
 
-resource pythonProcessorQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = {
+resource pythonProcessorQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-01-01' = {
   parent: queueService
   name: pythonQueueName
 }

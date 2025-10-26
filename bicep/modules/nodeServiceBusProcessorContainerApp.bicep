@@ -23,7 +23,7 @@ var registryPasswordSecretName = 'container-registry-password'
 var databaseUrlSecretName = 'db-url'
 var serviceBusConnectionStringSecretName = 'service-bus-connection-string'
 
-resource containerApp 'Microsoft.App/containerapps@2022-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: name
   location: location
   properties: {
