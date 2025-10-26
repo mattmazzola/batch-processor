@@ -105,16 +105,16 @@ $mainBicepFile = "$repoRoot/bicep/main.bicep"
 if ($WhatIf -eq $True) {
   az deployment group create `
     -g $sharedResourceGroupName `
-    -p nodeStorageQueueName=$nodeStorageQueueName `
-    pythonStorageQueueName=$pythonStorageQueueName `
+    -p nodeQueueName=$nodeStorageQueueName `
+    pythonQueueName=$pythonStorageQueueName `
     -f $mainBicepFile `
     --what-if
 }
 else {
   az deployment group create `
     -g $sharedResourceGroupName `
-    -p nodeStorageQueueName=$nodeStorageQueueName `
-    pythonStorageQueueName=$pythonStorageQueueName `
+    -p nodeQueueName=$nodeStorageQueueName `
+    pythonQueueName=$pythonStorageQueueName `
     -f $mainBicepFile `
     --query "properties.provisioningState" `
     -o tsv
