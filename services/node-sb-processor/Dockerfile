@@ -1,8 +1,8 @@
 # base node image
-FROM node:20-bullseye-slim AS base
+FROM node:20-alpine AS base
 
-# Install openssl for Prisma
-RUN apt-get update && apt-get install -y openssl sqlite3
+# Install openssl for Prisma (Alpine uses apk, not affected by Debian GPG issues)
+RUN apk add --no-cache openssl
 
 # Install all node_modules, including dev dependencies
 FROM base AS deps
