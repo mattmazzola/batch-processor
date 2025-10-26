@@ -8,17 +8,7 @@
         }
     ],
     "settings": {
-        "dotenv.enableAutocloaking": false,
-        "editor.codeActionsOnSave": {
-            "source.fixAll": "explicit",
-            "source.organizeImports": "explicit"
-        },
-        "powershell.cwd": "c:\\repos\\batch-processor",
+		"powershell.cwd": "/workspace/dummyOne/batch-processor",
         "python.analysis.typeCheckingMode": "basic"
     },
-    "extensions": {
-        "recommendations": [
-            "EditorConfig.EditorConfig"
-        ]
-    }
 }
