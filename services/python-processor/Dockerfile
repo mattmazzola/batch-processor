@@ -1,9 +1,10 @@
-FROM python:3.11-bookworm AS base
+FROM python:3.11-slim AS base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         curl \
-        build-essential
+        build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
