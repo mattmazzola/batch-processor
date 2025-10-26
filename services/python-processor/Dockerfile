@@ -1,4 +1,4 @@
-FROM python:3.11-buster AS base
+FROM python:3.11-bookworm-slim AS base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
